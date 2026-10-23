@@ -1,0 +1,235 @@
+/* Тёмная тема. Полностью перекрывает все элементы движка. */
+:root {
+  --bg: #14171c;
+  --card: #1e232b;
+  --text: #e6e9ee;
+  --muted: #8a93a1;
+  --accent: #4a9eff;
+  --accent-hover: #6cb2ff;
+  --ok: #4ade80;
+  --ok-bg: #1d3a2a;
+  --err: #f87171;
+  --err-bg: #3a1e1e;
+  --warn: #fbbf24;
+  --warn-bg: #3a2f1a;
+  --border: #2c333d;
+  --radius: 10px;
+  --radius-sm: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  background: #14171c;
+  color: #e6e9ee;
+}
+h1 { color: #e6e9ee; }
+.sub, .counter { color: #8a93a1; }
+
+/* Шапка */
+.topics-summary {
+  color: #8a93a1;
+  border-bottom-color: #2c333d;
+}
+.topics-summary:hover,
+.topics-summary.expanded {
+  color: #e6e9ee;
+  border-bottom-color: #4a9eff;
+}
+
+/* Прогресс */
+.progress-bar { background: #2c333d; }
+.progress-bar > div { background: #4a9eff; }
+
+/* Карточки */
+.card {
+  background: #1e232b;
+  border-color: #2c333d;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+}
+
+/* Вопрос */
+.q-num, .review-item .r-id, .review-item .r-topic { color: #8a93a1; }
+.q-text { color: #e6e9ee; }
+
+/* Варианты ответа */
+.opt {
+  background: #1e232b;
+  border-color: #2c333d;
+  color: #e6e9ee;
+}
+.opt:hover { background: #262c36; border-color: #4a9eff; }
+.opt.correct { background: #1d3a2a; border-color: #4ade80; }
+.opt.wrong   { background: #3a1e1e; border-color: #f87171; }
+.opt.chosen-plain { background: #1e3a55; border-color: #4a9eff; }
+
+/* Иконки на карточке */
+.icon-btn {
+  background: #1e232b;
+  border-color: #2c333d;
+  color: #8a93a1;
+}
+.icon-btn:hover { background: #262c36; color: #e6e9ee; }
+.icon-btn.active { color: #fbbf24; border-color: #fbbf24; background: #3a2f1a; }
+.icon-btn.danger:hover { color: #f87171; border-color: #f87171; }
+.icon-btn.stat { color: #8a93a1; background: #1e232b; }
+
+/* Кнопки */
+button {
+  background: #4a9eff;
+  color: #ffffff;
+}
+button:hover { background: #6cb2ff; }
+button:disabled { background: #4b5563; color: #9ca3af; }
+button.ghost {
+  background: transparent;
+  color: #4a9eff;
+  border: 1px solid #4a9eff;
+}
+button.ghost:hover { background: #1e3a55; }
+button.ghost:disabled { color: #4b5563; border-color: #2c333d; background: transparent; }
+button.danger { background: transparent; color: #f87171; border: 1px solid #f87171; }
+button.danger:hover { background: #3a1e1e; }
+
+/* Панель настроек */
+.settings {
+  background: #191d24;
+  color: #8a93a1;
+}
+.settings-cell {
+  background: #1e232b;
+  border-color: #2c333d;
+}
+.settings-cell .cell-head { color: #e6e9ee; }
+.settings-cell label { color: #e6e9ee; }
+.settings-cell select {
+  background: #1e232b;
+  color: #e6e9ee;
+  border-color: #2c333d;
+}
+.settings-cell input[type=file] { color: #8a93a1; }
+
+.settings-toggle {
+  background: transparent;
+  color: #4a9eff;
+  border-color: #4a9eff;
+}
+.settings-toggle:hover { background: #1e3a55; }
+.settings-toggle.open { background: #1e3a55; }
+
+.topics-list {
+  background: #1e232b;
+  border-color: #2c333d;
+}
+.topics-list label { color: #e6e9ee; }
+.topics-head a { color: #4a9eff; }
+
+/* Кнопки внешнего вида */
+.skin-btn {
+  background: transparent;
+  color: #4a9eff;
+  border: 1px solid #4a9eff;
+}
+.skin-btn:hover { background: #1e3a55; }
+.skin-btn.danger { color: #f87171; border-color: #f87171; }
+.skin-btn.danger:hover { background: #3a1e1e; }
+
+/* Поведение */
+.behaviour-row {
+  background: #1e232b;
+  border-color: #2c333d;
+}
+.behaviour-row label { color: #e6e9ee; }
+
+/* Поиск */
+.search-block input[type=search] {
+  background: #1e232b;
+  border-color: #2c333d;
+  color: #e6e9ee;
+}
+.search-block input[type=search]:focus {
+  border-color: #4a9eff;
+  box-shadow: 0 0 0 3px rgba(74,158,255,.25);
+}
+.search-results {
+  background: #1e232b;
+  border-color: #2c333d;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.search-item { border-bottom-color: #2c333d; }
+.search-item:hover { background: #262c36; }
+.search-item .sr-id { color: #4a9eff; }
+.search-item .sr-topic { color: #8a93a1; }
+.search-item .sr-q { color: #e6e9ee; }
+.search-item mark { background: #4a3a10; color: #fbbf24; }
+
+/* Панель быстрого перехода */
+.jump button {
+  background: #1e232b;
+  color: #e6e9ee;
+  border-color: #2c333d;
+}
+.jump button:hover { background: #262c36; }
+.jump button.current { background: #4a9eff; border-color: #4a9eff; color: #fff; }
+.jump button.answered { border-color: #4a9eff; color: #4a9eff; }
+.jump button.correct-dot { background: #1d3a2a; border-color: #4ade80; color: #4ade80; }
+.jump button.correct-dot.current { background: #4ade80; color: #14171c; }
+.jump button.wrong-dot { background: #3a1e1e; border-color: #f87171; color: #f87171; }
+.jump button.wrong-dot.current { background: #f87171; color: #14171c; }
+.jump button .jf-star { background: #3a2f1a; color: #fbbf24; }
+.jump button .jf-img { background: #1e3a55; color: #4a9eff; }
+
+/* Финальный экран */
+.final .score { color: #4a9eff; }
+.final .pct { color: #8a93a1; }
+
+/* Разбор */
+.review-item {
+  background: #1e232b;
+  border-color: #2c333d;
+}
+.r-opt {
+  background: #1e232b;
+  border-color: #2c333d;
+  color: #e6e9ee;
+}
+.r-opt.neutral { background: #1e232b; color: #e6e9ee; }
+.r-opt.neutral .marker { color: #8a93a1; }
+.r-opt.correct { background: #1d3a2a; border-color: #4ade80; color: #b9f6ce; }
+.r-opt.chosen-wrong { background: #3a1e1e; border-color: #f87171; color: #fecaca; }
+.r-opt.chosen-correct { background: #1d3a2a; border-color: #4ade80; color: #b9f6ce; }
+.r-note { color: #8a93a1; }
+
+/* Топ ошибок */
+.top-panel {
+  background: #191d24;
+  color: #8a93a1;
+}
+.top-panel label { color: #e6e9ee; }
+.top-panel select {
+  background: #1e232b;
+  color: #e6e9ee;
+  border-color: #2c333d;
+}
+.top-summary { color: #8a93a1; }
+.top-item {
+  background: #1e232b;
+  border-color: #2c333d;
+}
+.top-item .ti-rank { color: #8a93a1; }
+.top-item .ti-id { color: #4a9eff; }
+.top-item .ti-q { color: #e6e9ee; }
+.top-item .ti-topic { color: #8a93a1; }
+.top-item .ti-stats { color: #8a93a1; }
+.top-item .ti-stats b.err { color: #f87171; }
+.top-item .ti-stats b.ok { color: #4ade80; }
+.top-empty {
+  color: #8a93a1;
+  border-color: #2c333d;
+}
+
+/* Бейджи режима */
+.mode-badge.training { background: #1d3a2a; color: #4ade80; }
+.mode-badge.exam { background: #3a2f1a; color: #fbbf24; }
+.mode-badge.special { background: #1e3a55; color: #4a9eff; }
+
+/* Лайтбокс — оставим как есть, он и так тёмный */

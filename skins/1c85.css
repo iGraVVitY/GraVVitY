@@ -1,0 +1,278 @@
+/* Скин в стиле 1С:Предприятие 8.5 — Такси с жёлтой шапкой.
+   Жёлтая шапка-меню, белые вкладки, тонкие серые линии,
+   жёлтая подсветка активной строки, синие ссылки. */
+:root {
+  --bg: #ffffff;
+  --card: #ffffff;
+  --text: #2b2b2b;
+  --muted: #6b6b6b;
+  --accent: #2a5db0;
+  --accent-hover: #1d4a94;
+  --ok: #2f7a2f;
+  --ok-bg: #e8f5e8;
+  --err: #c92a2a;
+  --err-bg: #fbe6e6;
+  --warn: #b7791f;
+  --warn-bg: #fff8e0;
+  --border: #e0e0e0;
+  --radius: 4px;
+  --radius-sm: 4px;
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  color: #2b2b2b;
+  font-family: var(--font);
+  padding: 0 12px 60px;
+}
+
+/* Шапка страницы — жёлтая полоса в стиле меню 8.5 */
+.wrap::before {
+  content: "";
+  display: block;
+  height: 6px;
+  background: #ffd54f;
+  border-bottom: 1px solid #e0b73a;
+  margin: 0 -12px 20px;
+}
+
+h1 {
+  color: #2b2b2b;
+  font-weight: 600;
+  letter-spacing: -.1px;
+}
+.sub { color: #6b6b6b; }
+
+/* Карточки — белые, лёгкая тень, скругление 4px */
+.card {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+
+/* Заголовок вопроса */
+.q-num { color: #6b6b6b; }
+.q-text { color: #2b2b2b; font-weight: 600; }
+
+/* Варианты ответа */
+.opt {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  color: #2b2b2b;
+  transition: background .1s;
+}
+.opt:hover {
+  background: #fffbe6;
+  border-color: #ffd54f;
+}
+.opt.correct {
+  background: #e8f5e8;
+  border-color: #2f7a2f;
+}
+.opt.wrong {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+}
+.opt.chosen-plain {
+  background: #fff8e0;
+  border-color: #ffd54f;
+}
+
+/* Кнопки */
+button {
+  background: #ececec;
+  color: #2b2b2b;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-weight: 400;
+}
+button:hover {
+  background: #e0e0e0;
+  border-color: #b8b8b8;
+}
+button:disabled {
+  background: #f4f4f4;
+  color: #a0a0a0;
+  border-color: #e0e0e0;
+}
+/* Primary — жёлтая, как «Новое письмо» на скрине */
+button#nextBtn,
+button#reviewBtn,
+button#againBtn {
+  background: #ffd54f;
+  color: #2b2b2b;
+  border: 1px solid #e0b73a;
+  font-weight: 500;
+}
+button#nextBtn:hover,
+button#reviewBtn:hover,
+button#againBtn:hover {
+  background: #ffca28;
+  border-color: #d4a92e;
+}
+button.ghost {
+  background: #ffffff;
+  color: #2a5db0;
+  border: 1px solid #d0d0d0;
+}
+button.ghost:hover {
+  background: #fff8e0;
+  border-color: #ffd54f;
+}
+button.danger {
+  background: #ffffff;
+  color: #c92a2a;
+  border: 1px solid #d0d0d0;
+}
+button.danger:hover {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+}
+
+/* Панель настроек */
+.settings {
+  background: #fafafa;
+  color: #6b6b6b;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+}
+.settings select {
+  background: #ffffff;
+  color: #2b2b2b;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+}
+.settings-toggle {
+  color: #2a5db0;
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  border-radius: 4px;
+}
+.settings-toggle:hover {
+  background: #fff8e0;
+  border-color: #ffd54f;
+}
+.settings-toggle.open {
+  background: #fff8e0;
+  border-color: #ffd54f;
+}
+
+.topics-list {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+}
+.topics-list label:hover {
+  background: #fff8e0;
+}
+
+/* Поиск */
+.search-block input[type=search] {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  color: #2b2b2b;
+}
+.search-block input[type=search]:focus {
+  outline: none;
+  border-color: #ffd54f;
+  box-shadow: 0 0 0 2px #fff8e0;
+}
+.search-results {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.search-item:hover { background: #fff8e0; }
+.search-item .sr-id { color: #2a5db0; font-weight: 700; }
+.search-item mark { background: #ffe082; }
+
+/* Бейджи */
+.mode-badge.training { background: #e8f5e8; color: #2f7a2f; }
+.mode-badge.exam { background: #fff8e0; color: #b7791f; }
+.mode-badge.special { background: #eef4fb; color: #2a5db0; }
+
+/* Значки на карточке */
+.icon-btn {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  color: #6b6b6b;
+  border-radius: 4px;
+}
+.icon-btn:hover {
+  background: #fff8e0;
+  color: #2b2b2b;
+  border-color: #ffd54f;
+}
+.icon-btn.active {
+  background: #fff8e0;
+  color: #b7791f;
+  border-color: #ffd54f;
+}
+.icon-btn.danger:hover {
+  background: #fbe6e6;
+  color: #c92a2a;
+  border-color: #c92a2a;
+}
+
+/* Панель быстрого перехода */
+.jump button {
+  background: #ffffff;
+  color: #2b2b2b;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+}
+.jump button:hover {
+  background: #fff8e0;
+  border-color: #ffd54f;
+}
+.jump button.current {
+  background: #ffd54f;
+  color: #2b2b2b;
+  border-color: #e0b73a;
+  font-weight: 500;
+}
+.jump button.answered {
+  border-color: #2a5db0;
+  color: #2a5db0;
+}
+.jump button.correct-dot {
+  background: #e8f5e8;
+  border-color: #2f7a2f;
+  color: #2f7a2f;
+}
+.jump button.wrong-dot {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+  color: #c92a2a;
+}
+
+/* Прогресс-бар — жёлтый */
+.progress-bar {
+  background: #ececec;
+  border-radius: 2px;
+}
+.progress-bar > div {
+  background: #ffd54f;
+  border-radius: 2px;
+}
+
+/* Разбор */
+.review-item {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+.r-opt {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+.r-opt.correct { background: #e8f5e8; border-color: #2f7a2f; }
+.r-opt.chosen-wrong { background: #fbe6e6; border-color: #c92a2a; }
+.r-opt.chosen-correct { background: #e8f5e8; border-color: #2f7a2f; }

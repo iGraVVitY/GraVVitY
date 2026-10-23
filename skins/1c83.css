@@ -1,0 +1,263 @@
+/* Скин в стиле 1С:Предприятие 8.3 — классическая форма документа.
+   Белый фон, тонкие серые рамки, жёлтая primary-кнопка, жёлтая подсветка фокуса. */
+:root {
+  --bg: #f0f0f0;
+  --card: #ffffff;
+  --text: #2b2b2b;
+  --muted: #6b6b6b;
+  --accent: #2a5db0;
+  --accent-hover: #1d4a94;
+  --ok: #3d7a3d;
+  --ok-bg: #e8f5e8;
+  --err: #c92a2a;
+  --err-bg: #fbe6e6;
+  --warn: #b7791f;
+  --warn-bg: #fff4e0;
+  --border: #c8c8c8;
+  --radius: 2px;
+  --radius-sm: 2px;
+  --font: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+body {
+  background: #f0f0f0;
+  color: #2b2b2b;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  color: #2b2b2b;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.sub { color: #6b6b6b; }
+
+/* Карточки */
+.card {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+/* Заголовок вопроса */
+.q-num { color: #6b6b6b; font-size: 13px; }
+.q-text { color: #2b2b2b; font-weight: 600; }
+
+/* Варианты ответа */
+.opt {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+  color: #2b2b2b;
+}
+.opt:hover {
+  background: #f7f7f7;
+  border-color: #a8a8a8;
+}
+.opt.correct {
+  background: #e8f5e8;
+  border-color: #3d7a3d;
+}
+.opt.wrong {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+}
+.opt.chosen-plain {
+  background: #fff8e0;
+  border-color: #f5c542;
+}
+
+/* Кнопки */
+button {
+  background: #f0f0f0;
+  color: #2b2b2b;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+  text-shadow: none;
+  font-weight: 400;
+}
+button:hover {
+  background: #e4e4e4;
+  border-color: #a8a8a8;
+}
+button:disabled {
+  background: #f4f4f4;
+  color: #a0a0a0;
+  border-color: #dcdcdc;
+}
+/* «Primary» — у нас это #nextBtn, #reviewBtn, #againBtn */
+button#nextBtn,
+button#reviewBtn,
+button#againBtn {
+  background: #f5c542;
+  color: #2b2b2b;
+  border: 1px solid #d4a92e;
+}
+button#nextBtn:hover,
+button#reviewBtn:hover,
+button#againBtn:hover {
+  background: #eab92e;
+  border-color: #b8901e;
+}
+/* Ghost-кнопки («Назад», «Начать заново») */
+button.ghost {
+  background: transparent;
+  color: #2a5db0;
+  border: 1px solid #c8c8c8;
+}
+button.ghost:hover {
+  background: #eef4fb;
+  border-color: #2a5db0;
+}
+button.danger {
+  background: transparent;
+  color: #c92a2a;
+  border: 1px solid #c8c8c8;
+}
+button.danger:hover {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+}
+
+/* Панель настроек */
+.settings {
+  background: #f7f7f7;
+  color: #6b6b6b;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+}
+.settings select {
+  background: #ffffff;
+  color: #2b2b2b;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+}
+.settings-toggle {
+  color: #2a5db0;
+  border: 1px solid #c8c8c8;
+  background: #ffffff;
+}
+.settings-toggle:hover {
+  background: #fff8e0;
+  border-color: #f5c542;
+}
+.settings-toggle.open {
+  background: #fff8e0;
+  border-color: #f5c542;
+}
+
+.topics-list {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+}
+
+/* Поиск */
+.search-block input[type=search] {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+  color: #2b2b2b;
+}
+.search-block input[type=search]:focus {
+  outline: none;
+  border-color: #f5c542;
+  box-shadow: 0 0 0 2px #fff8e0;
+}
+.search-results {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.search-item:hover { background: #fff8e0; }
+.search-item .sr-id { color: #2a5db0; font-weight: 700; }
+.search-item mark { background: #ffe082; }
+
+/* Бейджи режима */
+.mode-badge.training { background: #e8f5e8; color: #3d7a3d; }
+.mode-badge.exam { background: #fff4e0; color: #b7791f; }
+.mode-badge.special { background: #eef4fb; color: #2a5db0; }
+
+/* Значки на карточке */
+.icon-btn {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  color: #6b6b6b;
+  border-radius: 2px;
+}
+.icon-btn:hover {
+  background: #fff8e0;
+  color: #2b2b2b;
+  border-color: #f5c542;
+}
+.icon-btn.active {
+  background: #fff8e0;
+  color: #b7791f;
+  border-color: #f5c542;
+}
+.icon-btn.danger:hover {
+  background: #fbe6e6;
+  color: #c92a2a;
+  border-color: #c92a2a;
+}
+
+/* Панель быстрого перехода */
+.jump button {
+  background: #ffffff;
+  color: #2b2b2b;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+}
+.jump button:hover {
+  background: #fff8e0;
+  border-color: #f5c542;
+}
+.jump button.current {
+  background: #f5c542;
+  color: #2b2b2b;
+  border-color: #d4a92e;
+  font-weight: 600;
+}
+.jump button.answered {
+  border-color: #2a5db0;
+  color: #2a5db0;
+}
+.jump button.correct-dot {
+  background: #e8f5e8;
+  border-color: #3d7a3d;
+  color: #3d7a3d;
+}
+.jump button.wrong-dot {
+  background: #fbe6e6;
+  border-color: #c92a2a;
+  color: #c92a2a;
+}
+
+/* Прогресс-бар */
+.progress-bar {
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+.progress-bar > div {
+  background: #f5c542;
+  border-radius: 2px;
+}
+
+/* Разбор */
+.review-item {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+}
+.r-opt {
+  background: #ffffff;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+}
+.r-opt.correct { background: #e8f5e8; border-color: #3d7a3d; }
+.r-opt.chosen-wrong { background: #fbe6e6; border-color: #c92a2a; }
+.r-opt.chosen-correct { background: #e8f5e8; border-color: #3d7a3d; }

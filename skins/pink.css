@@ -1,0 +1,276 @@
+/* Нежно-розовая тема. Мягкий фон, коралловые акценты, крупные скругления. */
+:root {
+  --bg: #fff5f8;
+  --card: #ffffff;
+  --text: #3a1f2b;
+  --muted: #9a7383;
+  --accent: #e91e63;
+  --accent-hover: #c2185b;
+  --ok: #2f855a;
+  --ok-bg: #e6ffed;
+  --err: #c53030;
+  --err-bg: #ffecec;
+  --warn: #d97706;
+  --warn-bg: #fff7ed;
+  --border: #f5c8d7;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(180deg, #fff5f8 0%, #fdeaf1 100%);
+  color: #3a1f2b;
+  font-family: var(--font);
+}
+h1 { color: #b03060; font-weight: 600; letter-spacing: -.2px; }
+.sub, .counter { color: #9a7383; }
+
+/* Шапка */
+.topics-summary {
+  color: #9a7383;
+  border-bottom-color: #f5c8d7;
+}
+.topics-summary:hover,
+.topics-summary.expanded {
+  color: #b03060;
+  border-bottom-color: #e91e63;
+}
+
+/* Прогресс */
+.progress-bar {
+  background: #fde2ec;
+  border-radius: 6px;
+}
+.progress-bar > div {
+  background: linear-gradient(90deg, #ff8fb1 0%, #e91e63 100%);
+  border-radius: 6px;
+}
+
+/* Карточки */
+.card {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  box-shadow: 0 4px 16px rgba(233,30,99,.08);
+  border-radius: 16px;
+}
+
+/* Вопрос */
+.q-num, .review-item .r-id, .review-item .r-topic { color: #9a7383; }
+.q-text { color: #3a1f2b; }
+
+/* Варианты */
+.opt {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  color: #3a1f2b;
+  border-radius: 12px;
+}
+.opt:hover {
+  background: #fff0f5;
+  border-color: #ff8fb1;
+}
+.opt.correct {
+  background: #e6ffed;
+  border-color: #2f855a;
+}
+.opt.wrong {
+  background: #ffecec;
+  border-color: #c53030;
+}
+.opt.chosen-plain {
+  background: #fff0f5;
+  border-color: #e91e63;
+}
+
+/* Иконки на карточке */
+.icon-btn {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  color: #9a7383;
+  border-radius: 10px;
+}
+.icon-btn:hover { background: #fff0f5; color: #b03060; }
+.icon-btn.active {
+  color: #e91e63; border-color: #e91e63; background: #fff0f5;
+}
+.icon-btn.danger:hover { color: #c53030; border-color: #c53030; }
+.icon-btn.stat { background: #ffffff; color: #9a7383; }
+
+/* Кнопки */
+button {
+  background: #e91e63;
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 600;
+}
+button:hover { background: #c2185b; }
+button:disabled { background: #f3c2d3; color: #ffffff; }
+button.ghost {
+  background: #ffffff;
+  color: #e91e63;
+  border: 1px solid #e91e63;
+}
+button.ghost:hover { background: #fff0f5; }
+button.danger { background: transparent; color: #c53030; border: 1px solid #c53030; }
+button.danger:hover { background: #ffecec; }
+
+/* Настройки */
+.settings {
+  background: #fff0f5;
+  color: #9a7383;
+  border-radius: 12px;
+}
+.settings-cell {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 12px;
+}
+.settings-cell .cell-head { color: #b03060; }
+.settings-cell label { color: #3a1f2b; }
+.settings-cell select {
+  background: #ffffff;
+  color: #3a1f2b;
+  border-color: #f5c8d7;
+  border-radius: 8px;
+}
+
+.settings-toggle {
+  background: #ffffff;
+  color: #e91e63;
+  border-color: #f5c8d7;
+}
+.settings-toggle:hover { background: #fff0f5; border-color: #e91e63; }
+.settings-toggle.open { background: #fff0f5; border-color: #e91e63; }
+
+.topics-list {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 10px;
+}
+.topics-list label { color: #3a1f2b; }
+.topics-head a { color: #e91e63; }
+
+/* Кнопки внешнего вида */
+.skin-btn {
+  background: #ffffff;
+  color: #e91e63;
+  border: 1px solid #e91e63;
+  border-radius: 10px;
+}
+.skin-btn:hover { background: #fff0f5; }
+.skin-btn.danger { color: #c53030; border-color: #c53030; }
+.skin-btn.danger:hover { background: #ffecec; }
+
+/* Поведение */
+.behaviour-row {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 12px;
+}
+.behaviour-row label { color: #3a1f2b; }
+
+/* Поиск */
+.search-block input[type=search] {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  color: #3a1f2b;
+  border-radius: 12px;
+}
+.search-block input[type=search]:focus {
+  border-color: #e91e63;
+  box-shadow: 0 0 0 3px rgba(233,30,99,.15);
+}
+.search-results {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 8px 20px rgba(233,30,99,.12);
+}
+.search-item { border-bottom-color: #fde2ec; }
+.search-item:hover { background: #fff0f5; }
+.search-item .sr-id { color: #e91e63; }
+.search-item .sr-topic { color: #9a7383; }
+.search-item .sr-q { color: #3a1f2b; }
+.search-item mark { background: #ffd6e5; color: #b03060; }
+
+/* Панель быстрого перехода */
+.jump button {
+  background: #ffffff;
+  color: #3a1f2b;
+  border-color: #f5c8d7;
+  border-radius: 8px;
+}
+.jump button:hover { background: #fff0f5; border-color: #ff8fb1; }
+.jump button.current {
+  background: #e91e63;
+  border-color: #e91e63;
+  color: #ffffff;
+}
+.jump button.answered { border-color: #e91e63; color: #e91e63; }
+.jump button.answered.current { color: #ffffff; }
+.jump button.correct-dot { background: #e6ffed; border-color: #2f855a; color: #2f855a; }
+.jump button.correct-dot.current { background: #2f855a; color: #ffffff; }
+.jump button.wrong-dot { background: #ffecec; border-color: #c53030; color: #c53030; }
+.jump button.wrong-dot.current { background: #c53030; color: #ffffff; }
+.jump button .jf-star { background: #ffd6e5; color: #b03060; }
+.jump button .jf-img { background: #fff0f5; color: #e91e63; }
+
+/* Финал */
+.final .score { color: #e91e63; }
+.final .pct { color: #9a7383; }
+
+/* Разбор */
+.review-item {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 12px;
+}
+.r-opt {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  color: #3a1f2b;
+  border-radius: 10px;
+}
+.r-opt.neutral { background: #ffffff; color: #3a1f2b; }
+.r-opt.neutral .marker { color: #9a7383; }
+.r-opt.correct { background: #e6ffed; border-color: #2f855a; color: #1c4532; }
+.r-opt.chosen-wrong { background: #ffecec; border-color: #c53030; color: #742a2a; }
+.r-opt.chosen-correct { background: #e6ffed; border-color: #2f855a; color: #1c4532; }
+.r-note { color: #9a7383; }
+
+/* Топ ошибок */
+.top-panel {
+  background: #fff0f5;
+  color: #9a7383;
+  border-radius: 12px;
+}
+.top-panel label { color: #3a1f2b; }
+.top-panel select {
+  background: #ffffff;
+  color: #3a1f2b;
+  border-color: #f5c8d7;
+}
+.top-summary { color: #9a7383; }
+.top-item {
+  background: #ffffff;
+  border-color: #f5c8d7;
+  border-radius: 12px;
+}
+.top-item .ti-rank { color: #ff8fb1; }
+.top-item .ti-id { color: #e91e63; }
+.top-item .ti-q { color: #3a1f2b; }
+.top-item .ti-topic { color: #9a7383; }
+.top-item .ti-stats { color: #9a7383; }
+.top-item .ti-stats b.err { color: #c53030; }
+.top-item .ti-stats b.ok { color: #2f855a; }
+.top-empty {
+  color: #9a7383;
+  border-color: #f5c8d7;
+  border-radius: 12px;
+}
+
+/* Бейджи режима */
+.mode-badge.training { background: #e6ffed; color: #2f855a; }
+.mode-badge.exam { background: #fff7ed; color: #d97706; }
+.mode-badge.special { background: #fff0f5; color: #e91e63; }

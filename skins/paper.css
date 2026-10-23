@@ -1,0 +1,54 @@
+/* Бумажный скин: бежевый фон, сепия, тёмно-коричневые акценты. */
+:root {
+  --bg: #f5efe0;
+  --card: #fbf6e9;
+  --text: #3a3222;
+  --muted: #8a7f68;
+  --accent: #8b5a2b;
+  --accent-hover: #6f4720;
+  --ok: #4a6b3a;
+  --ok-bg: #e8efd9;
+  --err: #8a3a2a;
+  --err-bg: #f4dcd0;
+  --warn: #b7791f;
+  --warn-bg: #f6ecd0;
+  --border: #d9cdb2;
+}
+body {
+  background: #f5efe0;
+  background-image:
+    radial-gradient(rgba(139,90,43,.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+h1 { color: #5a4530; }
+.card { background: #fbf6e9; border-color: #d9cdb2; }
+.opt {
+  background: #fbf6e9;
+  border-color: #d9cdb2;
+}
+.opt:hover { background: #f2ead3; border-color: #b8a37b; }
+.opt.correct { background: #e8efd9; border-color: #4a6b3a; }
+.opt.wrong   { background: #f4dcd0; border-color: #8a3a2a; }
+button {
+  background: #8b5a2b;
+  color: #fbf6e9;
+}
+button:hover { background: #6f4720; }
+button.ghost { color: #8b5a2b; border-color: #8b5a2b; }
+button.ghost:hover { background: #f2ead3; }
+button.danger { color: #8a3a2a; border-color: #8a3a2a; }
+button.danger:hover { background: #f4dcd0; }
+.settings { background: #f2ead3; color: #8a7f68; }
+.topics-list { background: #fbf6e9; border-color: #d9cdb2; }
+.settings-toggle { color: #8b5a2b; border-color: #d9cdb2; }
+.settings-toggle:hover { background: #f2ead3; border-color: #8b5a2b; }
+.search-block input[type=search] { background: #fbf6e9; border-color: #d9cdb2; }
+.search-block input[type=search]:focus { border-color: #8b5a2b; }
+.search-results { background: #fbf6e9; border-color: #d9cdb2; }
+.search-item:hover { background: #f2ead3; }
+.jump button { background: #fbf6e9; color: #3a3222; border-color: #d9cdb2; }
+.jump button.current { background: #8b5a2b; color: #fbf6e9; border-color: #8b5a2b; }
+.review-item { background: #fbf6e9; border-color: #d9cdb2; }
+.r-opt { background: #fbf6e9; border-color: #d9cdb2; }
+.icon-btn { background: #fbf6e9; border-color: #d9cdb2; color: #8a7f68; }
+.icon-btn:hover { background: #f2ead3; color: #3a3222; }

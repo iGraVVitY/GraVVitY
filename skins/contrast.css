@@ -1,0 +1,36 @@
+/* Контрастный скин: высокий контраст, яркие акценты, толстые линии. */
+:root {
+  --bg: #ffffff;
+  --card: #ffffff;
+  --text: #000000;
+  --muted: #4a4a4a;
+  --accent: #0000cc;
+  --accent-hover: #000099;
+  --ok: #006600;
+  --ok-bg: #ccffcc;
+  --err: #cc0000;
+  --err-bg: #ffcccc;
+  --warn: #b35900;
+  --warn-bg: #ffe6b3;
+  --border: #000000;
+  --radius: 0px;
+  --radius-sm: 0px;
+}
+body { background: #fff; color: #000; }
+.card { border: 2px solid #000; }
+.opt { border: 2px solid #000; }
+.opt:hover { background: #f0f0f0; }
+.opt.correct { background: #ccffcc; border-color: #006600; border-width: 3px; }
+.opt.wrong   { background: #ffcccc; border-color: #cc0000; border-width: 3px; }
+button { border: 2px solid #000; }
+button.ghost { color: #0000cc; border-color: #0000cc; }
+.settings { border: 2px solid #000; }
+.settings-toggle { border: 2px solid #000; }
+.search-block input[type=search] { border: 2px solid #000; }
+.topics-list { border: 2px solid #000; }
+.jump button { border: 2px solid #000; }
+.review-item { border: 2px solid #000; }
+.r-opt { border: 2px solid #000; }
+.r-opt.correct { border-color: #006600; border-width: 3px; }
+.r-opt.chosen-wrong { border-color: #cc0000; border-width: 3px; }
+.icon-btn { border: 2px solid #000; }
