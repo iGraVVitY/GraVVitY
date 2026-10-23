@@ -390,6 +390,179 @@
 /* 3. Отступ снизу для сетки вопросов, чтобы она не прилипала к краю */
 #quiz .jump { margin-bottom: 24px !important; }
   
+ /* =========================================================
+   КРАСИВЫЕ КВЕСТЫ И ТОП ОШИБОК
+   ========================================================= */
+
+/* --- Квесты --- */
+.quest-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); margin-bottom: 10px;
+}
+.quest-item.done { border-color: var(--ok); background: var(--ok-bg); }
+.quest-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: transparent; flex-shrink: 0; font-weight: bold;
+}
+.quest-item.done .quest-check { background: var(--ok); border-color: var(--ok); color: #fff; }
+.quest-info { flex: 1; }
+.quest-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.quest-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.quest-xp { font-weight: 800; font-size: 14px; color: var(--accent); }
+
+/* --- Топ ошибок --- */
+.top-panel {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px; margin-bottom: 16px; font-size: 13px;
+}
+.top-panel select { padding: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.top-item {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); margin-bottom: 12px;
+}
+.top-item-header { display: flex; justify-content: space-between; align-items: center; }
+.top-item-id { font-weight: 800; color: var(--accent); font-size: 15px; }
+.top-item-stats { font-size: 13px; color: var(--muted); }
+.top-item-q { font-weight: 600; font-size: 15px; color: var(--text); margin: 4px 0; }
+.top-item-topic { font-size: 12px; color: var(--muted); } 
+  
+  /* Шапка */
+.mobile-header {
+  display: flex; justify-content: space-between; align-items: center; padding: 8px 0;
+}
+.user-profile { display: flex; gap: 12px; align-items: center; }
+.avatar {
+  width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #2b6cb0, #4299e1);
+  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px;
+  box-shadow: 0 4px 12px rgba(43,108,176,0.3);
+}
+.user-name { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
+.user-status { font-size: 13px; color: var(--muted); font-weight: 500; }
+.gamification-header {
+  display: flex; gap: 12px; background: var(--card); padding: 8px 12px; border-radius: 20px;
+  border: 1px solid var(--border); cursor: pointer;
+}
+.gami-item { font-size: 14px; font-weight: 700; color: var(--text); }
+
+/* Поиск */
+#mobileSearchInput {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+#mobileSearchResults {
+  position: absolute;
+  top: 100% !important;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+#mobileSearchResults.open { display: block; }
+  
+  /* =========================================================
+   КРАСИВЫЙ ТОП ОШИБОК
+   ========================================================= */
+.top-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.top-filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+.top-filters select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.top-list-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.top-card-id {
+  font-weight: 800;
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.top-card-stats {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.top-card-q {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.top-card-topic {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.top-card-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.top-card-btn:active { opacity: 0.8; }
+  
+  
 </style>
 
 </style>
@@ -400,21 +573,22 @@
 <div class="app-container" id="mobileDashboard">
   
   <!-- Верхняя шапка профиля -->
-<header class="mobile-header">
-  <div class="user-profile">
-    <div class="avatar">👨‍💻</div>
-    <div class="user-info">
-      <h1 id="mobileTitle" class="user-name">Тест 1С</h1>
-      <!-- Сюда будем выводить уровень -->
-      <div id="mobileLevelText" class="user-status" style="color:var(--accent); font-weight:700;">Новичок</div>
+  <header class="mobile-header">
+    <div class="user-profile">
+      <div class="avatar">👨‍💻</div>
+      <div class="user-info">
+        <h1 id="mobileTitle" class="user-name">Тест 1С</h1>
+        <!-- Сюда будем выводить уровень -->
+        <div id="mobileLevelText" class="user-status" style="color:var(--accent); font-weight:700;">Новичок</div>
+      </div>
     </div>
-  </div>
-  <!-- Блок геймификации -->
-  <div class="gamification-header" onclick="openStats()">
-    <div class="gami-item" title="Серия дней"><span id="mobileStreakBadge">🔥 0</span></div>
-    <div class="gami-item" title="Опыт"><span id="mobileXpLevel">⭐ 0 XP</span></div>
-  </div>
-</header>
+    <!-- Блок геймификации -->
+    <div class="gamification-header" onclick="openStats()">
+      <div class="gami-item" title="Серия дней"><span id="mobileStreakBadge">🔥 0</span></div>
+      <div class="gami-item" title="Опыт"><span id="mobileXpLevel">⭐ 0 XP</span></div>
+    </div>
+  </header>
+
   <!-- Карточка дневной цели / квеста -->
   <div class="daily-goal-card" onclick="openQuestsModal()">
     <div class="goal-header">
@@ -424,17 +598,24 @@
     <div class="goal-desc" id="mobileGoalDesc">Выполните задание, чтобы получить награду.</div>
   </div>
   
-   <button class="btn-block" id="questsBtn" onclick="openQuestsModal()" style="margin-top: 10px; padding: 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-weight: 700;">
+  <!-- Кнопки квестов и старта -->
+  <button class="btn-block" id="questsBtn" onclick="openQuestsModal()" style="padding: 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-weight: 700;">
     📋 Ежедневные квесты (<span id="questsCount">0/3</span>)
   </button>
 
-  <!-- Главная кнопка -->
   <button class="btn-primary btn-hero" onclick="launchMobileTest()">
     ▶ Начать тест
   </button>
 
+  <!-- ПОИСК ЗДЕСЬ -->
+  <div class="search-block" style="margin-bottom: 0; position: relative; z-index: 50;">
+    <input type="search" id="mobileSearchInput" placeholder="Поиск по вопросам, вариантам, ID…" autocomplete="off">
+    <div class="search-results" id="mobileSearchResults" style="top: 100%; border-radius: 0 0 var(--radius-sm) var(--radius-sm);"></div>
+  </div>
+
   <!-- Сетка навигации 2x2 -->
-  <div class="nav-grid-2x2">
+  <div class="nav-grid-2x2" style="margin-top: 12px;">
+    <!-- ... остальные кнопки (Карта, Рекорды, Босс, Достижения) ... -->
    <div class="nav-card-large" onclick="document.getElementById('mapBtn').click()">
   <div class="nav-icon-large">🗺️</div>
   <div class="nav-title">Карта тем</div>
@@ -802,7 +983,7 @@
   </div>
 </div>
 
-<div class="lightbox" id="lightbox">
+<div class="lightbox" id="lightbox" style="display: none;">
   <div class="close-hint">Клик — закрыть · Esc — закрыть</div>
   <img id="lightboxImg" alt="">
 </div>
@@ -2925,7 +3106,7 @@ function renderSearchResults(query) {
     });
   });
 }
-searchInput.addEventListener("input", (e) => renderSearchResults(e.target.value));
+//searchInput.addEventListener("input", (e) => renderSearchResults(e.target.value));
 searchInput.addEventListener("focus", (e) => {
   if (e.target.value && e.target.value.trim().length >= 2) renderSearchResults(e.target.value);
 });
@@ -4239,6 +4420,134 @@ $("#buildMobileBtn").addEventListener("click", async () => {
 /* 3. Отступ снизу для сетки вопросов, чтобы она не прилипала к краю */
 #quiz .jump { margin-bottom: 24px !important; }
 		
+		
+/* =========================================================
+   КРАСИВЫЕ КВЕСТЫ И ТОП ОШИБОК
+   ========================================================= */
+
+/* --- Квесты --- */
+.quest-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); margin-bottom: 10px;
+}
+.quest-item.done { border-color: var(--ok); background: var(--ok-bg); }
+.quest-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: transparent; flex-shrink: 0; font-weight: bold;
+}
+.quest-item.done .quest-check { background: var(--ok); border-color: var(--ok); color: #fff; }
+.quest-info { flex: 1; }
+.quest-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.quest-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.quest-xp { font-weight: 800; font-size: 14px; color: var(--accent); }
+
+/* --- Топ ошибок --- */
+.top-panel {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px; margin-bottom: 16px; font-size: 13px;
+}
+.top-panel select { padding: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.top-item {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); margin-bottom: 12px;
+}
+.top-item-header { display: flex; justify-content: space-between; align-items: center; }
+.top-item-id { font-weight: 800; color: var(--accent); font-size: 15px; }
+.top-item-stats { font-size: 13px; color: var(--muted); }
+.top-item-q { font-weight: 600; font-size: 15px; color: var(--text); margin: 4px 0; }
+.top-item-topic { font-size: 12px; color: var(--muted); }		
+		
+		/* =========================================================
+   КРАСИВЫЙ ТОП ОШИБОК
+   ========================================================= */
+.top-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.top-filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+.top-filters select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.top-list-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.top-card-id {
+  font-weight: 800;
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.top-card-stats {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.top-card-q {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.top-card-topic {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.top-card-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.top-card-btn:active { opacity: 0.8; }
+		
       </style>
     `;
     const chartJs = '<script src="https://cdn.jsdelivr.net/npm/chart.js"></' + 'script>';
@@ -4805,42 +5114,100 @@ function openStats() {
 
 // 2. Топ ошибок (полноценный, из старого интерфейса)
 function openMobileTop() {
-  if (typeof renderTop === 'function') {
-    const wasShowingTop = state.showingTop;
-    state.showingTop = true;
-    render(); // Рендерим топ в старый скрытый #quiz
+  if (!state.topics || state.topics.length === 0) return alert("Сначала загрузите вопросы.");
+
+  const topBody = document.getElementById('mobileTopBody');
+  
+  // Функция для отрисовки списка
+  function renderTopList() {
+    const all = getAllQuestionsFlat();
     
-    // Копируем результат в модалку
-    const topBody = document.getElementById('mobileTopBody');
-    if (topBody) {
-      const oldQuiz = document.getElementById('quiz');
-      topBody.innerHTML = oldQuiz.innerHTML;
-      
-      // Перепривязываем кнопки "Перейти"
-      topBody.querySelectorAll("button[data-top-idx]").forEach(b => {
-        b.addEventListener("click", () => {
-          const idx = parseInt(b.dataset.topIdx, 10);
-          state.showingTop = false;
-          state.finished = false;
-          state.showingReview = false;
-          state.current = idx;
-          render();
-          document.getElementById('mobileTopModal').classList.remove('active');
-          // Автоматически открываем тест, если он был закрыт
-          document.body.classList.add('test-is-open');
-        });
-      });
-      // Перепривязываем фильтры
-      const topFilter = topBody.querySelector("#topFilter");
-      if (topFilter) topFilter.addEventListener("change", () => { 
-          const val = topFilter.value; $("#topFilter").value = val; 
-          renderTop(); openMobileTop(); // Перерисовываем модалку
+    // Фильтруем только вопросы с ошибками
+    const withErr = all.map(item => {
+      const stat = getStat(item);
+      return { item, ok: stat.ok, err: stat.err, total: stat.ok + stat.err };
+    }).filter(x => x.err > 0);
+
+    // Сортировка (по умолчанию по числу ошибок)
+    withErr.sort((a, b) => b.err - a.err);
+    
+    // Берем топ-20
+    const top = withErr.slice(0, 20);
+
+    let html = `
+      <div class="top-filters">
+        <label>Сортировка:
+          <select id="mobTopSort">
+            <option value="count">По числу ошибок</option>
+          </select>
+        </label>
+      </div>
+      <div style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">
+        Всего вопросов с ошибками: <b>${withErr.length}</b>. Показано: <b>${top.length}</b>.
+      </div>
+    `;
+
+    if (top.length === 0) {
+      html += `<div style="text-align:center; padding: 30px; color: var(--muted);">Пока ошибок нет. Так держать!</div>`;
+    } else {
+      top.forEach((row, i) => {
+        const item = row.item;
+        const pct = row.total > 0 ? Math.round((row.err / row.total) * 100) : 0;
+        
+        html += `
+          <div class="top-list-card">
+            <div class="top-card-header">
+              <span class="top-card-id">${escapeHtml(item.id)}</span>
+              <span class="top-card-stats">Ошибок: <b style="color:var(--err)">${row.err}</b> · Верно: <b style="color:var(--ok)">${row.ok}</b> (${pct}%)</span>
+            </div>
+            <div class="top-card-q">${escapeHtml(item.q)}</div>
+            <div class="top-card-topic">${escapeHtml(item._topicTitle || "")}</div>
+            <button class="top-card-btn" data-topic="${item._topicId}" data-id="${item.id}">Перейти к вопросу →</button>
+          </div>
+        `;
       });
     }
-    
-    state.showingTop = wasShowingTop;
-    document.getElementById('mobileTopModal').classList.add('active');
+
+    topBody.innerHTML = html;
+
+    // Обработчик кнопки "Перейти"
+    topBody.querySelectorAll('.top-card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const topicId = btn.dataset.topic;
+        const qId = btn.dataset.id;
+        
+        // Находим вопрос в базе
+        const topic = state.topics.find(t => t.id === topicId);
+        if (!topic) return;
+        const question = topic.questions.find(q => q.id === qId);
+        if (!question) return;
+
+        // Запускаем одиночный тест из этого вопроса
+        state.order = [{ ...question, _topicId: topicId, _topicTitle: topic.title }];
+        state.optionOrders = {};
+        state.answers = {};
+        state.current = 0;
+        state.finished = false;
+        state.showingReview = false;
+        state.showingTop = false;
+        
+        // Перемешиваем варианты (если нужно)
+        let idxs = question.options.map((_, i) => i);
+        if (question.shuffle !== false) idxs = shuffle(idxs);
+        state.optionOrders[question.id] = idxs;
+
+        // Закрываем модалку топа и запускаем тест
+        document.getElementById('mobileTopModal').classList.remove('active');
+        if (typeof launchMobileTest === 'function') launchMobileTest();
+      });
+    });
   }
+
+  // Первичная отрисовка
+  renderTopList();
+
+  // Открываем модалку
+  document.getElementById('mobileTopModal').classList.add('active');
 }
 
 // 3. Синхронизация геймификации (Стрик, Уровень, Достижения)
@@ -5031,7 +5398,7 @@ function openMobileSettings() {
         // Принудительно обновляем шапку
         if (typeof syncGamificationUI === 'function') syncGamificationUI();
         
-        closeMobileSettings(); // Закрываем настройки
+ 
       } catch (err) { body.querySelector('#mobFileStatus').textContent = "Ошибка: " + err.message; }
     };
     reader.readAsText(file, "utf-8");
@@ -5141,6 +5508,119 @@ document.addEventListener("click", (e) => {
     if (typeof showBossModal === "function") showBossModal("ultra", null, "Ультра-босс", "Пожиратель Лицензий", 80, "👹", skin);
     return;
   }
+});
+/* =========================================================
+   ПОИСК В МОБИЛЬНОМ ИНТЕРФЕЙСЕ (СТРОГО ПО ТЕКУЩЕМУ ФАЙЛУ)
+   ========================================================= */
+const mobileSearchInput = document.getElementById('mobileSearchInput');
+const mobileSearchResults = document.getElementById('mobileSearchResults');
+
+function renderMobileSearchResults(query) {
+  if (!query || query.trim().length < 2) {
+    mobileSearchResults.classList.remove("open");
+    mobileSearchResults.innerHTML = "";
+    return;
+  }
+  
+  const q = query.trim().toLowerCase();
+  
+  // ВАЖНО: Берем вопросы ТОЛЬКО из state.topics (текущий загруженный файл)
+  const results = [];
+  state.topics.forEach(topic => {
+    topic.questions.forEach(qItem => {
+      const item = { ...qItem, _topicId: topic.id, _topicTitle: topic.title };
+      if (
+        item.id.toLowerCase().includes(q) || 
+        item.q.toLowerCase().includes(q) ||
+        item.options.some(o => o.toLowerCase().includes(q))
+      ) {
+        results.push(item);
+      }
+    });
+  });
+
+  // Ограничиваем до 15 результатов
+  const topResults = results.slice(0, 15);
+
+  if (topResults.length === 0) {
+    mobileSearchResults.innerHTML = `<div class="search-empty">Ничего не найдено в текущем файле</div>`;
+    mobileSearchResults.classList.add("open");
+    return;
+  }
+
+  let html = "";
+  topResults.forEach(item => {
+    // Проверяем, есть ли этот вопрос в текущей сессии теста
+    const idx = state.order.findIndex(x => x.id === item.id && x._topicId === item._topicId);
+    const inCurrent = idx !== -1;
+    
+    const status = inCurrent
+      ? `<span style="color:var(--ok);font-size:12px;">— В тесте, №${idx + 1}</span>`
+      : `<span style="color:var(--muted);font-size:12px;">— Не в тесте</span>`;
+      
+    // Подсветка найденного текста
+    const lowerQ = item.q.toLowerCase();
+    const matchIdx = lowerQ.indexOf(q);
+    let highlightedQ = escapeHtml(item.q);
+    if (matchIdx !== -1) {
+      highlightedQ = escapeHtml(item.q.slice(0, matchIdx)) + 
+                     "<mark>" + escapeHtml(item.q.slice(matchIdx, matchIdx + q.length)) + "</mark>" + 
+                     escapeHtml(item.q.slice(matchIdx + q.length));
+    }
+      
+    html += `<div class="search-item" data-idx="${idx}" data-id="${item.id}" data-topic="${item._topicId}">`;
+    html += `<div><span class="sr-id">${escapeHtml(item.id)}</span> <span class="sr-topic">${escapeHtml(item._topicTitle || "")} ${status}</span></div>`;
+    html += `<div class="sr-q">${highlightedQ}</div>`;
+    html += `</div>`;
+  });
+  
+  mobileSearchResults.innerHTML = html;
+  mobileSearchResults.classList.add("open");
+
+  mobileSearchResults.querySelectorAll(".search-item").forEach(el => {
+    el.addEventListener("click", () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (idx >= 0) {
+        // Если вопрос в текущем тесте — переходим к нему
+        state.current = idx;
+        state.finished = false;
+        state.showingReview = false;
+        state.showingTop = false;
+        render();
+        if (typeof launchMobileTest === 'function') launchMobileTest();
+      } else {
+        // Если вопроса нет в текущем тесте, запускаем его отдельно
+        const topicId = el.dataset.topic;
+        const qId = el.dataset.id;
+        const topic = state.topics.find(t => t.id === topicId);
+        if (!topic) return;
+        const question = topic.questions.find(q => q.id === qId);
+        if (!question) return;
+
+        state.order = [{ ...question, _topicId: topicId, _topicTitle: topic.title }];
+        state.optionOrders = {};
+        state.answers = {};
+        state.current = 0;
+        state.finished = false;
+        state.showingReview = false;
+        state.showingTop = false;
+        
+        let idxs = question.options.map((_, i) => i);
+        if (question.shuffle !== false) idxs = shuffle(idxs);
+        state.optionOrders[question.id] = idxs;
+
+        render();
+        if (typeof launchMobileTest === 'function') launchMobileTest();
+      }
+      mobileSearchResults.classList.remove("open");
+      mobileSearchInput.value = "";
+    });
+  });
+}
+
+mobileSearchInput.addEventListener("input", (e) => renderMobileSearchResults(e.target.value));
+mobileSearchInput.addEventListener("blur", () => {
+  setTimeout(() => mobileSearchResults.classList.remove("open"), 200);
 });
 
 </script>
