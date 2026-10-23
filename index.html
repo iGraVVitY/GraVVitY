@@ -562,7 +562,96 @@
 }
 .top-card-btn:active { opacity: 0.8; }
   
-  
+/* =========================================================
+   ПОЛИРОВКА ГЛАВНОГО ЭКРАНА (КНОПКА И ИКОНКИ)
+   ========================================================= */
+
+/* 1. Делаем главную кнопку тоньше (уменьшаем padding) */
+.btn-hero {
+  padding: 12px 20px !important; /* Было 20px */
+  font-size: 16px !important;
+  border-radius: 14px !important;
+  margin: 4px 0 !important;
+}
+
+/* =========================================================
+   ИДЕАЛЬНЫЕ КАРТОЧКИ НАВИГАЦИИ
+   ========================================================= */
+
+.nav-card-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px 12px !important;
+  gap: 8px; /* Расстояние между иконкой и текстом */
+}
+
+/* Делаем иконки просто большими и без лишних рамок */
+.nav-icon-large {
+  font-size: 36px !important; /* Крупный размер */
+  line-height: 1;
+  margin-bottom: 0 !important; /* Убираем старый отступ */
+  /* Легкая тень придает объем самому эмодзи */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); 
+  /* Легкий эффект стекла (опционально) */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.nav-title {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: var(--text);
+  margin: 0 !important;
+}
+
+.nav-sub {
+  font-size: 12px !important;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: -2px;
+}
+}
+
+/* 3. Чтобы кнопки «Настройки» и «Топ ошибок» были на одном уровне с новыми карточками */
+.bottom-actions .btn-secondary {
+  padding: 12px !important;
+  font-size: 14px !important;
+} 
+ 
+ /* =========================================================
+   ФИНАЛЬНЫЕ ШТРИХИ ДЛЯ ГЛАВНОГО ЭКРАНА
+   ========================================================= */
+
+/* 1. Еще больше уменьшаем высоту главной кнопки (делаем тоньше) */
+.btn-hero {
+  padding: 10px 20px !important; /* Уменьшили отступы */
+  font-size: 16px !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* 2. Красивый поиск с иконкой лупы */
+#mobileSearchInput {
+  padding: 12px 16px 12px 40px !important; /* Отступ слева под иконку */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 18px !important;
+}
+
+/* Корректируем цвет иконки для темной темы */
+@media (prefers-color-scheme: dark) {
+  #mobileSearchInput {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+  }
+}
+ 
 </style>
 
 </style>
@@ -2795,7 +2884,33 @@ async function buildExportHtml() {
     scrollbar-width: thin !important;
     scrollbar-color: var(--border) transparent !important;
   }
-  
+  /* =========================================================
+   ФИНАЛЬНЫЕ ШТРИХИ ДЛЯ ГЛАВНОГО ЭКРАНА
+   ========================================================= */
+
+/* 1. Еще больше уменьшаем высоту главной кнопки (делаем тоньше) */
+.btn-hero {
+  padding: 10px 20px !important; /* Уменьшили отступы */
+  font-size: 16px !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* 2. Красивый поиск с иконкой лупы */
+#mobileSearchInput {
+  padding: 12px 16px 12px 40px !important; /* Отступ слева под иконку */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 18px !important;
+}
+
+/* Корректируем цвет иконки для темной темы */
+@media (prefers-color-scheme: dark) {
+  #mobileSearchInput {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -4547,6 +4662,67 @@ $("#buildMobileBtn").addEventListener("click", async () => {
   transition: opacity 0.2s;
 }
 .top-card-btn:active { opacity: 0.8; }
+		
+		/* =========================================================
+   ПОЛИРОВКА ГЛАВНОГО ЭКРАНА (КНОПКА И ИКОНКИ)
+   ========================================================= */
+
+/* 1. Делаем главную кнопку тоньше (уменьшаем padding) */
+.btn-hero {
+  padding: 12px 20px !important; /* Было 20px */
+  font-size: 16px !important;
+  border-radius: 14px !important;
+  margin: 4px 0 !important;
+}
+
+/* =========================================================
+   ИДЕАЛЬНЫЕ КАРТОЧКИ НАВИГАЦИИ
+   ========================================================= */
+
+.nav-card-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px 12px !important;
+  gap: 8px; /* Расстояние между иконкой и текстом */
+}
+
+/* Делаем иконки просто большими и без лишних рамок */
+.nav-icon-large {
+  font-size: 36px !important; /* Крупный размер */
+  line-height: 1;
+  margin-bottom: 0 !important; /* Убираем старый отступ */
+  /* Легкая тень придает объем самому эмодзи */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); 
+  /* Легкий эффект стекла (опционально) */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.nav-title {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: var(--text);
+  margin: 0 !important;
+}
+
+.nav-sub {
+  font-size: 12px !important;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: -2px;
+}
+
+/* 3. Чтобы кнопки «Настройки» и «Топ ошибок» были на одном уровне с новыми карточками */
+.bottom-actions .btn-secondary {
+  padding: 12px !important;
+  font-size: 14px !important;
+}
 		
       </style>
     `;
