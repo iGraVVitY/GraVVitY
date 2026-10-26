@@ -41,6 +41,93 @@ function computeFileKey(topics) {
   return "h:" + sha1(titles.join("|")).slice(0, 16);
 }
 
+/* =========================================================
+   Шифрование / дешифрование набора вопросов (AES-256-GCM + PBKDF2)
+   ========================================================= */
+
+// Преобразование ArrayBuffer в Base64 (и обратно)
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
+function base64ToArrayBuffer(base64) {
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+// Получение ключа из пароля (PBKDF2)
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 600000, // Рекомендация OWASP
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+// Шифрование текста (возвращает JSON-строку)
+async function encryptText(plaintext, password) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(password, salt);
+  
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    enc.encode(plaintext)
+  );
+  
+  // Упаковываем всё в один объект: salt + iv + ciphertext
+  return JSON.stringify({
+    v: 1,
+    salt: arrayBufferToBase64(salt),
+    iv: arrayBufferToBase64(iv),
+    data: arrayBufferToBase64(ciphertext)
+  });
+}
+
+// Дешифрование (принимает JSON-строку, возвращает исходный текст)
+async function decryptText(encryptedJson, password) {
+  const pkg = JSON.parse(encryptedJson);
+  if (!pkg.salt || !pkg.iv || !pkg.data) throw new Error("Неверный формат зашифрованного файла.");
+  
+  const salt = new Uint8Array(base64ToArrayBuffer(pkg.salt));
+  const iv = new Uint8Array(base64ToArrayBuffer(pkg.iv));
+  const ciphertext = base64ToArrayBuffer(pkg.data);
+  
+  const key = await deriveKey(password, salt);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    ciphertext
+  );
+  
+  return new TextDecoder().decode(decrypted);
+}
 
 /* =========================================================
    НАСТРОЙКИ
@@ -4884,14 +4971,38 @@ function openMobileSettings() {
   const body = document.getElementById('mobileSettingsBody');
 
   body.innerHTML = `
+    <!-- === БЛОК: Наборы с GitHub === -->
+    <div class="settings-cell">
+      <div class="cell-head">🔐 Наборы с GitHub</div>
+      <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">
+        Выберите зашифрованный набор из репозитория. Потребуется пароль.
+      </p>
+      <button class="btn-secondary" id="mobLoadFromGitHubBtn" style="width:100%; padding:14px;">
+        📥 Загрузить список с GitHub
+      </button>
+      <div id="mobGitHubList" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;"></div>
+      <div id="mobGitHubStatus" style="font-size:12px; color:var(--muted); margin-top:6px;"></div>
+    </div>
+
+    <!-- === БЛОК: Зашифрованный набор с устройства === -->
+    <div class="settings-cell">
+      <div class="cell-head">🔐 Зашифрованный файл с устройства</div>
+      <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">
+        Загрузите файл <code>.json</code>, зашифрованный паролем. Вопросы будут расшифрованы в браузере.
+      </p>
+      <input type="file" id="mobEncFileInput" accept=".json,.enc" style="display:none;">
+      <button class="btn-secondary" id="mobLoadEncBtn" style="width:100%; padding:14px;">📂 Выбрать зашифрованный файл</button>
+      <div id="mobEncStatus" style="font-size:12px; color:var(--muted); margin-top:6px;"></div>
+    </div>
+
+    <!-- === БЛОК: Обычный файл === -->
     <div class="settings-cell">
       <div class="cell-head">Файл вопросов</div>
       <input type="file" id="mobFileInput" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
       <div style="font-size:12px; color:var(--muted); margin-top:4px;" id="mobFileStatus">Файл не выбран</div>
     </div>
 
-
-
+    <!-- === БЛОК: Режим === -->
     <div class="settings-cell">
       <div class="cell-head">Режим</div>
       <select id="mobModeSelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);">
@@ -4901,13 +5012,14 @@ function openMobileSettings() {
       </select>
     </div>
 
+    <!-- === БЛОК: Поведение === -->
     <div class="settings-cell">
       <div class="cell-head">Поведение</div>
       <label style="display:flex; gap:8px; margin-bottom:8px;"><input type="checkbox" id="mobAutoAdvance" ${$("#autoAdvance").checked ? 'checked' : ''}> Автопереход</label>
       <label style="display:flex; gap:8px; margin-bottom:8px;"><input type="checkbox" id="mobShowImages" ${$("#showImages").checked ? 'checked' : ''}> Картинки</label>
     </div>
 
-    <!-- === НОВЫЙ БЛОК: Экспорт и печать === -->
+    <!-- === БЛОК: Экспорт и печать === -->
     <div class="settings-cell">
       <div class="cell-head">📄 Экспорт и печать</div>
       <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">
@@ -4917,7 +5029,7 @@ function openMobileSettings() {
       <div id="mobExportStatus" style="font-size:12px; color:var(--muted); margin-top:6px;"></div>
     </div>
 
-    <!-- === НОВЫЙ БЛОК: Ключ ответов === -->
+    <!-- === БЛОК: Ключ ответов === -->
     <div class="settings-cell">
       <div class="cell-head">🔑 Ключ ответов</div>
       <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">
@@ -4929,7 +5041,8 @@ function openMobileSettings() {
       </div>
       <input type="file" id="mobImportKeyInput" accept=".json" style="display:none;">
     </div>
-    <!-- === НОВЫЙ БЛОК: Полная очистка прогресса === -->
+
+    <!-- === БЛОК: Очистка прогресса === -->
     <div class="settings-cell" style="border-color: var(--err);">
       <div class="cell-head" style="color: var(--err);">🗑 Очистка прогресса набора</div>
       <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">
@@ -4937,11 +5050,12 @@ function openMobileSettings() {
       </p>
       <button class="btn-secondary" id="mobClearAllProgressBtn" style="width:100%; padding:14px; border-color:var(--err); color:var(--err);">🗑 Полностью очистить прогресс</button>
     </div>
+
     <button class="btn-secondary" onclick="openBuildModal(); closeMobileSettings();" style="margin-top:10px; padding:14px; border-color:var(--ok); color:var(--ok);">📱 Собрать мобильный билд (всё в 1 файл)</button>
     <button class="btn-primary" id="mobSaveSettings" style="margin-top:10px; padding:14px;">Применить и закрыть</button>
   `;
 
-  // --- Старая логика (файл, темы, режим, поведение) ---
+  // --- Логика: Обычный файл ---
   const fileInput = body.querySelector('#mobFileInput');
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -4951,27 +5065,23 @@ function openMobileSettings() {
       try {
         const text = String(ev.target.result);
         const topics = parseTopicsFromText(text);
+        window.__CURRENT_QUESTIONS_TEXT = text;
         loadTopics(topics, file.name, file.name);
         if (typeof window.iosRememberSet === "function") window.iosRememberSet(file.name, text, topics);
         body.querySelector('#mobFileStatus').textContent = "Загружено: " + file.name + " (" + topics.length + " тем) — запомнен на устройстве";
-        window.__CURRENT_QUESTIONS_TEXT = text;
         if (typeof syncGamificationUI === 'function') syncGamificationUI();
       } catch (err) { body.querySelector('#mobFileStatus').textContent = "Ошибка: " + err.message; }
     };
     reader.readAsText(file, "utf-8");
   });
 
-
+  // --- Логика: Режим и Поведение ---
   body.querySelector('#mobModeSelect').addEventListener('change', (e) => { CONFIG.mode = e.target.value; $("#modeSelect").value = CONFIG.mode; start(); });
-
   const syncBehavior = (mobId, oldId) => { body.querySelector(mobId).addEventListener('change', (e) => { const old = $(oldId); if(old) { old.checked = e.target.checked; old.dispatchEvent(new Event('change')); } }); };
   syncBehavior('#mobAutoAdvance', '#autoAdvance');
   syncBehavior('#mobShowImages', '#showImages');
 
-  body.querySelector('#mobSaveSettings').addEventListener('click', closeMobileSettings);
-  if (typeof window.iosAugmentSettings === 'function') window.iosAugmentSettings(body);
-
-  // === НОВОЕ: Экспорт HTML ===
+  // --- Логика: Экспорт HTML ---
   body.querySelector('#mobExportHtmlBtn').addEventListener('click', async () => {
     if (state.topics.length === 0) {
       body.querySelector('#mobExportStatus').textContent = "Сначала загрузите файл вопросов.";
@@ -4982,124 +5092,146 @@ function openMobileSettings() {
     btn.disabled = true;
     btn.textContent = "⏳ Готовим файл…";
     statusEl.textContent = "Обработка картинок и сборка…";
-    
     try {
-      // Вызываем существующую функцию из app.js
       const { html, fileKeyClean } = await buildExportHtml();
       const dateStr = new Date().toISOString().slice(0, 10);
       const fileName = fileKeyClean + "_вопросы_" + dateStr + ".html";
-      
-      // Правки для iOS: используем deliverFile (Поделиться / Сохранить в Файлы)
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      if (typeof window.deliverFile === "function") {
-        window.deliverFile(blob, fileName);
-      } else {
-        // Фолбэк
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = fileName;
-        document.body.appendChild(a); a.click(); a.remove();
+      if (typeof window.deliverFile === "function") window.deliverFile(blob, fileName);
+      else {
+        const url = URL.createObjectURL(blob); const a = document.createElement("a");
+        a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
-      
-      statusEl.textContent = "✅ Готово: " + fileName;
-      statusEl.style.color = "var(--ok)";
+      statusEl.textContent = "✅ Готово: " + fileName; statusEl.style.color = "var(--ok)";
     } catch (err) {
-      statusEl.textContent = "❌ Ошибка: " + err.message;
-      statusEl.style.color = "var(--err)";
+      statusEl.textContent = "❌ Ошибка: " + err.message; statusEl.style.color = "var(--err)";
     } finally {
-      btn.disabled = false;
-      btn.textContent = "🖨 Экспорт в HTML (с ответами)";
+      btn.disabled = false; btn.textContent = "🖨 Экспорт в HTML (с ответами)";
     }
   });
 
-  // === НОВОЕ: Экспорт ключа (3 формата) ===
+  // --- Логика: Экспорт/Импорт ключа ---
   body.querySelector('#mobExportKeyBtn').addEventListener('click', () => {
     if (state.topics.length === 0) return alert("Сначала загрузите файл вопросов.");
-    
-    const modeChoice = prompt(
-      "Выберите формат выгрузки ключа:\n\n" +
-      "1 — Краткий (только ID и номер ответа)\n" +
-      "2 — С текстом вопроса\n" +
-      "3 — Расширенный (текст вопроса + текст ответа + номер)\n\n" +
-      "Введите цифру 1, 2 или 3:", "3"
-    );
+    const modeChoice = prompt("Формат выгрузки ключа:\n\n1 — Краткий\n2 — С текстом вопроса\n3 — Расширенный\n\nВведите цифру:", "3");
     if (!modeChoice) return;
-    
     let mode = 'full';
-    if (modeChoice === "1") mode = 'short';
-    else if (modeChoice === "2") mode = 'text';
-    else if (modeChoice === "3") mode = 'full';
-    
-    let includeShuffle = false;
-    if (mode !== 'short') {
-      includeShuffle = confirm("Включить в ключ настройку шафла (перемешивания) для каждого вопроса?");
-    }
-    
-    // Вызываем существующую функцию
+    if (modeChoice === "1") mode = 'short'; else if (modeChoice === "2") mode = 'text';
+    let includeShuffle = mode !== 'short' ? confirm("Включить в ключ настройку шафла?") : false;
     const data = buildKeyData(mode, includeShuffle);
     const timestamp = new Date().toISOString().slice(0, 10);
     const cleanFileKey = (state.fileKey || "questions").replace(/\.(js|json|txt)$/i, "");
     const filename = cleanFileKey + "_key_" + timestamp + ".json";
-    
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
-    if (typeof window.deliverFile === "function") {
-      window.deliverFile(blob, filename);
-    } else {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
+    if (typeof window.deliverFile === "function") window.deliverFile(blob, filename);
+    else {
+      const url = URL.createObjectURL(blob); const a = document.createElement("a");
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
   });
 
-  // === НОВОЕ: Импорт ключа ===
   const importKeyInput = body.querySelector('#mobImportKeyInput');
-  body.querySelector('#mobImportKeyBtn').addEventListener('click', () => {
-    importKeyInput.value = "";
-    importKeyInput.click();
-  });
+  body.querySelector('#mobImportKeyBtn').addEventListener('click', () => { importKeyInput.value = ""; importKeyInput.click(); });
   importKeyInput.addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (data.fileKey && state.fileKey && data.fileKey !== state.fileKey) {
-          if (!confirm(`Внимание! Ключ выгружен из «${data.fileKey}», а сейчас открыт «${state.fileKey}».\n\nПродолжить?`)) return;
-        }
-        applyKeyData(data);
-      } catch (err) { alert("Ошибка при чтении ключа: " + err.message); }
+      try { const data = JSON.parse(ev.target.result); applyKeyData(data); } catch (err) { alert("Ошибка при чтении ключа: " + err.message); }
     };
     reader.onerror = () => alert("Не удалось прочитать файл.");
     reader.readAsText(file, "utf-8");
   });
 
-  document.getElementById('mobileSettingsModal').classList.add('active');
-
-    // === НОВОЕ: Полная очистка прогресса ===
+  // --- Логика: Очистка прогресса ---
   body.querySelector('#mobClearAllProgressBtn').addEventListener('click', () => {
-    if (!confirm("⚠️ ВНИМАНИЕ!\n\nБудут удалены ВСЕ данные для текущего набора вопросов:\n— Статистика ответов\n— Избранное\n— Достижения\n— XP и уровни\n— Серии дней\n— Рекорды\n— Боссы\n\nЭто действие НЕОБРАТИМО. Продолжить?")) return;
-
-    // Второе подтверждение для надёжности
-    if (!confirm("Точно удалить? Отменить это действие будет невозможно.")) return;
-
+    if (!confirm("⚠️ ВНИМАНИЕ!\n\nБудут удалены ВСЕ данные для текущего набора вопросов:\n— Статистика\n— Избранное\n— Достижения\n— XP\n— Серии\n— Рекорды\n— Боссы\n\nЭто действие НЕОБРАТИМО. Продолжить?")) return;
+    if (!confirm("Точно удалить?")) return;
     const deletedCount = clearAllProgressForSet();
-    
     if (deletedCount > 0) {
-      alert(`✅ Удалено ${deletedCount} записей прогресса.\n\nПерезапустим тест с чистого листа.`);
-      // Перезапускаем тест
-      start();
-      // Обновляем модалку настроек
-      setTimeout(() => openMobileSettings(), 100);
-    } else {
-      alert("Нечего очищать — прогресс уже пуст.");
+      alert(`✅ Удалено ${deletedCount} записей.\n\nПерезапустим тест с чистого листа.`);
+      start(); setTimeout(() => openMobileSettings(), 100);
+    } else alert("Нечего очищать — прогресс уже пуст.");
+  });
+
+  // --- Логика: Зашифрованный файл с устройства ---
+  const encInput = body.querySelector('#mobEncFileInput');
+  const encBtn = body.querySelector('#mobLoadEncBtn');
+  const encStatus = body.querySelector('#mobEncStatus');
+  encBtn.addEventListener('click', () => { encInput.value = ""; encInput.click(); });
+  encInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const encryptedText = String(ev.target.result);
+      const password = prompt("Введите пароль для расшифровки набора:");
+      if (!password) return;
+      encStatus.textContent = "Расшифровка..."; encStatus.style.color = "var(--muted)";
+      try {
+        const decryptedText = await decryptText(encryptedText, password);
+        const topics = parseTopicsFromText(decryptedText);
+        loadTopics(topics, file.name + " (расшифрован)", file.name);
+        encStatus.textContent = `✅ Успешно (${topics.length} тем).`; encStatus.style.color = "var(--ok)";
+        setTimeout(() => { start(); closeMobileSettings(); }, 500);
+      } catch (err) {
+        encStatus.textContent = "❌ Ошибка: неверный пароль или файл повреждён."; encStatus.style.color = "var(--err)";
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  });
+
+  // --- Логика: Загрузка списка с GitHub ---
+  const GITHUB_USER = "iGraVVitY";
+  const GITHUB_REPO = "GraVVitY";
+  const GITHUB_FOLDER = "sets";
+  body.querySelector('#mobLoadFromGitHubBtn').addEventListener('click', async () => {
+    const listEl = body.querySelector('#mobGitHubList');
+    const statusEl = body.querySelector('#mobGitHubStatus');
+    statusEl.textContent = "Загрузка списка файлов…"; listEl.innerHTML = "";
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FOLDER}`, { headers: { 'Accept': 'application/vnd.github+json' } });
+      if (!res.ok) throw new Error(`GitHub API вернул ${res.status}. Возможно, папка пуста или репозиторий не публичный.`);
+      const files = await res.json();
+      const encFiles = files.filter(f => f.name.endsWith('.enc.json') || f.name.endsWith('.json'));
+      if (encFiles.length === 0) { statusEl.textContent = "В папке нет зашифрованных файлов."; return; }
+      statusEl.textContent = `Найдено файлов: ${encFiles.length}`;
+      listEl.innerHTML = encFiles.map(f => `
+        <button class="btn-secondary" data-file-name="${f.name}" data-file-url="${f.download_url}" style="text-align:left; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span>📄 ${f.name}</span><span style="font-size:11px; color:var(--muted);">${(f.size / 1024).toFixed(1)} КБ</span>
+        </button>
+      `).join("");
+      listEl.querySelectorAll('[data-file-url]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const fileName = btn.dataset.fileName; const fileUrl = btn.dataset.fileUrl;
+          const password = prompt(`Введите пароль для «${fileName}»:`);
+          if (!password) return;
+          statusEl.textContent = "Скачивание и расшифровка…";
+          try {
+            const fileRes = await fetch(fileUrl); const encryptedText = await fileRes.text();
+            const decryptedText = await decryptText(encryptedText, password);
+            const topics = parseTopicsFromText(decryptedText);
+            loadTopics(topics, fileName + " (с GitHub)", fileName);
+            statusEl.textContent = `✅ Расшифровано (${topics.length} тем).`; statusEl.style.color = "var(--ok)";
+            setTimeout(() => { start(); closeMobileSettings(); }, 500);
+          } catch (err) {
+            statusEl.textContent = "❌ Ошибка: неверный пароль или файл повреждён."; statusEl.style.color = "var(--err)";
+          }
+        });
+      });
+    } catch (err) {
+      statusEl.textContent = "❌ " + err.message; statusEl.style.color = "var(--err)";
     }
   });
-}
 
+  // --- Прочее ---
+  body.querySelector('#mobSaveSettings').addEventListener('click', closeMobileSettings);
+  if (typeof window.iosAugmentSettings === 'function') window.iosAugmentSettings(body);
+  
+  document.getElementById('mobileSettingsModal').classList.add('active');
+}
 function closeMobileSettings() {
   document.getElementById('mobileSettingsModal').classList.remove('active');
 }
@@ -5543,4 +5675,21 @@ function resetZIndexIfEmpty() {
   }
 }
 
-
+window.encryptQuestionsForPublish = async function(password) {
+  if (!state.topics || state.topics.length === 0) {
+    console.error("Сначала загрузите вопросы в тренажёр.");
+    return;
+  }
+  const text = "const TOPICS = " + JSON.stringify(state.topics, null, 2) + ";";
+  const encrypted = await encryptText(text, password);
+  
+  const blob = new Blob([encrypted], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "questions.enc.json";
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log("Файл questions.enc.json создан. Загрузите его на GitHub.");
+};
