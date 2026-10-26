@@ -3012,22 +3012,72 @@ document.getElementById("bossDayBtn")?.addEventListener("click", () => {
   openSettings(settingsOpen);
 
   // Правки для iOS: сначала загружаем набор вопросов, сохранённый на устройстве (IndexedDB), и только потом встроенный questions.js — на iPhone нельзя каждый раз выбирать файл заново
+  // Правки для iOS: сначала загружаем набор вопросов, сохранённый на устройстве (IndexedDB), и только потом встроенный questions.js
   let __bootLoaded = false;
-  if (window.__BOOT_SET && window.__BOOT_SET.text) {
+  
+  // ПРИОРИТЕТ 1: Наш сохраненный набор (из localStorage)
+  const savedText = localStorage.getItem("ios:savedSetText");
+  const savedPassword = localStorage.getItem("ios:savedSetPassword");
+  
+  if (savedText) {
+    try {
+      if (savedPassword) {
+        // Если есть пароль — значит, текст зашифрован. Расшифровываем асинхронно.
+        decryptText(savedText, savedPassword).then(decryptedText => {
+          try {
+            const __t = parseTopicsFromText(decryptedText);
+            if (Array.isArray(__t) && __t.length) {
+              window.__CURRENT_QUESTIONS_TEXT = decryptedText;
+              loadTopics(__t, "Восстановлен (расшифрован)", "saved-set");
+              __bootLoaded = true;
+            }
+          } catch (e) {
+            console.warn("[init] Сохраненный расшифрованный набор не разобран", e);
+            localStorage.removeItem("ios:savedSetText");
+            localStorage.removeItem("ios:savedSetPassword");
+          }
+        }).catch(err => {
+          console.warn("[init] Не удалось расшифровать сохраненный набор", err);
+          // Если пароль не подошел (например, другой файл), очищаем
+          localStorage.removeItem("ios:savedSetText");
+          localStorage.removeItem("ios:savedSetPassword");
+          // После этого запустится фолбэк ниже
+        });
+        // Так как decryptText асинхронный, мы возвращаемся, а загрузка пойдет по цепочке в then()
+        return; 
+      } else {
+        // Обычный (незашифрованный) текст
+        const __t = parseTopicsFromText(savedText);
+        if (Array.isArray(__t) && __t.length) {
+          window.__CURRENT_QUESTIONS_TEXT = savedText;
+          loadTopics(__t, "Восстановлен", "saved-set");
+          __bootLoaded = true;
+        }
+      }
+    } catch (e) {
+      console.warn("[init] Сохраненный набор не разобран", e);
+      localStorage.removeItem("ios:savedSetText");
+      localStorage.removeItem("ios:savedSetPassword");
+    }
+  }
+
+  // ПРИОРИТЕТ 2: Если из localStorage ничего не загрузилось, проверяем старый IndexedDB (__BOOT_SET)
+  if (!__bootLoaded && window.__BOOT_SET && window.__BOOT_SET.text) {
     try {
       const __t = parseTopicsFromText(window.__BOOT_SET.text);
-      if (Array.isArray(__t) && __t.length) { loadTopics(__t, window.__BOOT_SET.name + " (сохранён на устройстве)", window.__BOOT_SET.name); __bootLoaded = true; }
+      if (Array.isArray(__t) && __t.length) { 
+        loadTopics(__t, window.__BOOT_SET.name + " (сохранён на устройстве)", window.__BOOT_SET.name); 
+        __bootLoaded = true; 
+      }
     } catch (e) { console.warn("[ios] сохранённый набор не разобран", e); }
   }
-  if (__bootLoaded) {
-    /* загружен набор пользователя */
-} else if (typeof TOPICS !== "undefined" && Array.isArray(TOPICS) && TOPICS.length > 0) {
-    // Если загружаем встроенный файл, берем его исходный код из скрипта на странице
+
+  // ПРИОРИТЕТ 3: Встроенный questions.js
+  if (!__bootLoaded && typeof TOPICS !== "undefined" && Array.isArray(TOPICS) && TOPICS.length > 0) {
     const qScript = document.getElementById('src-questions') || Array.from(document.scripts).find(s => s.src.includes('questions.js'));
     window.__CURRENT_QUESTIONS_TEXT = qScript ? (qScript.textContent || "") : "";
-    
     loadTopics(TOPICS, "questions.js (автозагрузка)", "questions.js");
-} else {
+  } else if (!__bootLoaded) {
     render();
   }
 })();
@@ -5067,6 +5117,10 @@ function openMobileSettings() {
         const topics = parseTopicsFromText(text);
         window.__CURRENT_QUESTIONS_TEXT = text;
         loadTopics(topics, file.name, file.name);
+        
+        // СОХРАНЯЕМ в localStorage (без пароля)
+        saveCurrentSetToStorage(text);
+        
         if (typeof window.iosRememberSet === "function") window.iosRememberSet(file.name, text, topics);
         body.querySelector('#mobFileStatus').textContent = "Загружено: " + file.name + " (" + topics.length + " тем) — запомнен на устройстве";
         if (typeof syncGamificationUI === 'function') syncGamificationUI();
@@ -5174,6 +5228,10 @@ function openMobileSettings() {
         const decryptedText = await decryptText(encryptedText, password);
         const topics = parseTopicsFromText(decryptedText);
         loadTopics(topics, file.name + " (расшифрован)", file.name);
+        
+        // СОХРАНЯЕМ в localStorage (и зашифрованный текст, и пароль)
+        saveCurrentSetToStorage(encryptedText, password);
+        
         encStatus.textContent = `✅ Успешно (${topics.length} тем).`; encStatus.style.color = "var(--ok)";
         setTimeout(() => { start(); closeMobileSettings(); }, 500);
       } catch (err) {
@@ -5214,6 +5272,10 @@ function openMobileSettings() {
             const decryptedText = await decryptText(encryptedText, password);
             const topics = parseTopicsFromText(decryptedText);
             loadTopics(topics, fileName + " (с GitHub)", fileName);
+            
+            // СОХРАНЯЕМ в localStorage (и зашифрованный текст, и пароль)
+            saveCurrentSetToStorage(encryptedText, password);
+            
             statusEl.textContent = `✅ Расшифровано (${topics.length} тем).`; statusEl.style.color = "var(--ok)";
             setTimeout(() => { start(); closeMobileSettings(); }, 500);
           } catch (err) {
@@ -5693,3 +5755,23 @@ window.encryptQuestionsForPublish = async function(password) {
   
   console.log("Файл questions.enc.json создан. Загрузите его на GitHub.");
 };
+
+
+// Сохранение текущего набора (текста) и пароля в localStorage
+function saveCurrentSetToStorage(rawText, password = null) {
+  try {
+    localStorage.setItem("ios:savedSetText", rawText);
+    if (password) {
+      localStorage.setItem("ios:savedSetPassword", password);
+    } else {
+      localStorage.removeItem("ios:savedSetPassword");
+    }
+    
+    // Опционально: если хотим синхронизировать с IndexedDB для ios.js
+    if (window.iosRememberSet && window.TestApp?.state?.topics) {
+      // Тут можно вызвать iosRememberSet, если нужно, но мы уже сохранили текст
+    }
+  } catch (e) {
+    console.warn("Не удалось сохранить набор в localStorage", e);
+  }
+}
