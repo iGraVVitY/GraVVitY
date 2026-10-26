@@ -1,0 +1,2467 @@
+/* =========================================================
+   CSS-ПЕРЕМЕННЫЕ И БАЗОВЫЕ НАСТРОЙКИ
+   ========================================================= */
+:root {
+  color-scheme: light dark;
+
+  /* Цвета фона/текста */
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --text: #1c1f26;
+  --muted: #6b7280;
+  --border: #e2e6ee;
+
+  /* Акцент */
+  --accent: #2b6cb0;
+  --accent-hover: #1f4e80;
+
+  /* Статусы */
+  --ok: #2f855a;   --ok-bg: #e6ffed;
+  --err: #c53030;  --err-bg: #ffecec;
+  --warn: #e53e3e; --warn-bg: #fff4e0;
+
+  /* Золото (поверженные боссы) */
+  --gold-border: #d69e2e;
+  --gold-text: #856404;
+
+  /* Скругления */
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  /* Шрифт */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* z-index-слои (чем выше — тем поверх) */
+  --z-dropdown: 100;
+  --z-modal: 500;
+  --z-map: 1000;
+  --z-boss: 1100;
+  --z-test: 2000;
+  --z-toast: 3000;
+}
+
+/* Сброс: убираем фокусные обводки (по требованию дизайна) */
+* { box-sizing: border-box; outline: none !important; }
+*:focus { outline: none !important; box-shadow: none !important; }
+
+/* =========================================================
+   ТЁМНАЯ ТЕМА
+   Применяется двумя путями:
+   1) автоматически по настройкам ОС;
+   2) принудительно при классе .dark-theme на body (бой с боссом).
+   ========================================================= */
+
+/* 1. Автоматически по ОС */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115 !important;
+    --card: #1a1d24 !important;
+    --text: #f1f5f9 !important;
+    --muted: #94a3b8 !important;
+    --accent: #3b82f6 !important;
+    --accent-hover: #2563eb !important;
+    --ok: #10b981 !important;
+    --ok-bg: rgba(16, 185, 129, 0.15) !important;
+    --err: #ef4444 !important;
+    --err-bg: rgba(239, 68, 68, 0.15) !important;
+    --warn: #f59e0b !important;
+    --warn-bg: rgba(245, 158, 11, 0.15) !important;
+    --border: #2d3748 !important;
+    --gold-text: #f6e05e; /* светло-золотой для тёмной темы */
+    color-scheme: dark !important;
+  }
+}
+
+/* 2. Принудительная тёмная тема для боя с боссом */
+body.dark-theme {
+  --bg: #0f1115 !important;
+  --card: #1a1d24 !important;
+  --text: #f1f5f9 !important;
+  --muted: #94a3b8 !important;
+  --accent: #3b82f6 !important;
+  --accent-hover: #2563eb !important;
+  --ok: #10b981 !important;
+  --ok-bg: rgba(16, 185, 129, 0.15) !important;
+  --err: #ef4444 !important;
+  --err-bg: rgba(239, 68, 68, 0.15) !important;
+  --warn: #f59e0b !important;
+  --warn-bg: rgba(245, 158, 11, 0.15) !important;
+  --border: #2d3748 !important;
+  --gold-text: #f6e05e;
+  color-scheme: dark !important;
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+body.dark-theme .modal-content,
+body.dark-theme .card,
+body.dark-theme .opt {
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* =========================================================
+   ГЛАВНЫЙ ЭКРАН (ДАШБОРД)
+   ========================================================= */
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+/* --- Шапка с профилем --- */
+.mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+.user-profile { display: flex; gap: 12px; align-items: center; }
+
+.avatar {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2b6cb0, #4299e1);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+}
+.user-name {
+  font-size: 20px; font-weight: 800;
+  margin: 0; letter-spacing: -0.5px;
+}
+.user-status { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+/* --- Геймификация (XP/уровень/монеты) --- */
+.gamification-header {
+  display: flex; gap: 12px;
+  background: var(--card);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.gami-item { font-size: 14px; font-weight: 700; color: var(--text); }
+
+/* --- Карточка ежедневной цели --- */
+.daily-goal-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+}
+.daily-goal-card:active { transform: scale(0.98); }
+
+.goal-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.goal-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.goal-xp    { font-size: 13px; font-weight: 700; color: var(--accent); }
+.goal-desc  { font-size: 13px; color: var(--muted); }
+
+/* --- Основные кнопки --- */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+}
+.btn-hero {
+  padding: 10px 20px !important;
+  font-size: 16px !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 20px rgba(43, 108, 176, 0.3);
+  margin: 4px 0 !important;
+}
+.btn-secondary {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+.bottom-actions { display: flex; gap: 12px; margin-top: 8px; }
+.bottom-actions .btn-secondary {
+  flex: 1;
+  padding: 12px !important;
+  font-size: 14px !important;
+  border-radius: 14px;
+}
+
+/* --- Сетка навигации 2×2 --- */
+.nav-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.nav-card-large {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 12px !important;
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  gap: 8px;
+  transition: transform 0.1s;
+}
+.nav-card-large:active { transform: scale(0.96); }
+.nav-icon-large {
+  font-size: 36px !important;
+  line-height: 1;
+  margin: 0 !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+.nav-title { font-size: 15px !important; font-weight: 800 !important; color: var(--text); margin: 0 !important; }
+.nav-sub   { font-size: 12px !important; color: var(--muted); font-weight: 500; margin-top: -2px; }
+
+/* --- Поиск --- */
+#mobileSearchInput {
+  width: 100%;
+  padding: 12px 16px 12px 40px !important;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  /* Иконка лупы как data-URI */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 18px !important;
+}
+
+#mobileSearchResults {
+  position: absolute;
+  top: 100% !important;
+  left: 0; right: 0;
+  z-index: 100;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+#mobileSearchResults.open { display: block; }
+
+/* =========================================================
+   МОДАЛЬНЫЕ ОКНА (ОБЩАЯ БАЗА)
+   ========================================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+  background: var(--card);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.modal-content.full-screen {
+  height: 100vh; height: 100dvh;
+  max-height: 100vh; max-height: 100dvh;
+  border-radius: 0;
+}
+
+/* Скролл-фикс внутри модалок */
+.modal-overlay .modal-content {
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.modal-overlay .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-overlay .modal-content.full-screen {
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+}
+
+/* Мобильный шит снизу / ПК-модалка по центру */
+@media (max-width: 768px) {
+  .modal-overlay { align-items: flex-end; }
+  .modal-content { border-radius: 10px 24px 0 0; }
+}
+@media (min-width: 768px) {
+  .modal-content { border-radius: 24px; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* =========================================================
+   ТЕСТ: ВОПРОСЫ, ВАРИАНТЫ, НАВИГАЦИЯ, ФИНАЛ
+   ========================================================= */
+
+/* --- Скролл-область вопросов --- */
+.quiz-scroll-area {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  
+}
+.card {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+.q-text {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding-right: 0 !important;
+  padding-top: 2%;
+  text-align: left;
+}
+.options { display: flex; flex-direction: column; gap: 8px; }
+
+/* --- Варианты ответа --- */
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--bg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  background: var(--card);
+}
+.opt.correct { background: var(--ok-bg);  border-color: var(--ok); }
+.opt.wrong   { background: var(--err-bg); border-color: var(--err); }
+
+/* --- Кастомные радиокнопки --- */
+.opt input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background-color: transparent;
+  margin-top: 1px;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.opt:hover input[type="radio"]        { border-color: var(--accent); }
+.opt input[type="radio"]:checked      { border-color: var(--accent); background-color: var(--accent); }
+.opt input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background-color: #fff;
+}
+.opt.correct input[type="radio"]:checked { border-color: var(--ok);  background-color: var(--ok);  }
+.opt.wrong   input[type="radio"]:checked { border-color: var(--err); background-color: var(--err); }
+
+/* --- Кнопки «Назад / Далее» --- */
+#quiz .nav {
+  display: flex !important;
+  gap: 12px !important;
+  margin-top: 24px !important;
+  
+}
+#quiz .nav button {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 14px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  border: none;
+  cursor: pointer;
+}
+#quiz #prevBtn {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+#quiz #prevBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+#quiz #nextBtn {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.2);
+}
+
+/* --- Панель перехода по номерам вопросов --- */
+#quiz .jump {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+#quiz .jump button {
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+#quiz .jump button.current {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* --- Верхняя панель вопроса (избранное/статистика) --- */
+.card-actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  gap: 8px !important;
+}
+.card-actions > div:last-child { display: flex; gap: 8px; }
+
+.icon-btn {
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  width: 36px !important; height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  color: var(--muted) !important;
+}
+.icon-btn.stat {
+  width: auto !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+.icon-btn.active {
+  color: var(--warn) !important;
+  border-color: var(--warn) !important;
+  background: var(--warn-bg) !important;
+}
+.icon-btn.danger {
+  color: var(--err) !important;
+  border-color: var(--err) !important;
+  background: var(--err-bg) !important;
+}
+
+/* --- Кнопки внизу теста (Список / Завершение) --- */
+.action-buttons-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+.test-action-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.test-action-btn:active { transform: scale(0.98); }
+.test-action-btn.danger { color: var(--err); border-color: rgba(239, 68, 68, 0.3); }
+.test-action-btn.danger:active { background: var(--err-bg); }
+
+/* --- Финальный экран теста --- */
+.final-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 50vh;
+}
+.final-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.btn-final-primary {
+  background: var(--accent); color: #fff;
+  padding: 16px; border-radius: 12px;
+  font-weight: bold; font-size: 16px;
+  border: none; cursor: pointer; width: 100%;
+}
+.btn-final-secondary {
+  background: transparent; color: var(--accent);
+  padding: 16px; border-radius: 12px;
+  font-weight: bold; font-size: 16px;
+  border: 1px solid var(--accent); cursor: pointer; width: 100%;
+}
+.btn-final-ghost {
+  background: transparent; color: var(--muted);
+  padding: 16px; border-radius: 12px;
+  font-weight: bold; font-size: 16px;
+  border: none; cursor: pointer; width: 100%; text-align: center;
+}
+
+/* --- Плашка «Верно / Неверно» --- */
+.verdict {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 5px;
+  text-align: center;
+}
+.verdict.ok  { color: var(--ok)  !important; }
+.verdict.err { color: var(--err) !important; }
+
+/* =========================================================
+   БОССЫ: АНИМАЦИИ, АРЕНА, ЭКРАНЫ ПОБЕДЫ/ПОРАЖЕНИЯ
+   ========================================================= */
+
+/* --- Ключевые кадры --- */
+@keyframes bossAuraPulse {
+  0%   { box-shadow: 0 0 10px 2px var(--boss-color, var(--err)), inset 0 0 15px rgba(255,255,255,0.05); }
+  50%  { box-shadow: 0 0 25px 8px var(--boss-color, var(--err)), inset 0 0 40px rgba(255,255,255,0.15); }
+  100% { box-shadow: 0 0 10px 2px var(--boss-color, var(--err)), inset 0 0 15px rgba(255,255,255,0.05); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
+@keyframes animBreath {
+  0%   { filter: drop-shadow(0 0 10px var(--boss-color)); }
+  50%  { filter: drop-shadow(0 0 35px var(--boss-color)); }
+  100% { filter: drop-shadow(0 0 10px var(--boss-color)); }
+}
+@keyframes animVampire {
+  0%   { box-shadow: inset 0 0 10px 2px var(--boss-color); border-color: var(--boss-color); }
+  50%  { box-shadow: inset 0 0 30px 5px var(--boss-color), inset 0 0 20px #fff; border-color: #fff; }
+  100% { box-shadow: inset 0 0 10px 2px var(--boss-color); border-color: var(--boss-color); }
+}
+@keyframes animExplosion {
+  0%   { transform: scale(1);   filter: brightness(1); background: var(--card); box-shadow: inset 0 0 50px var(--boss-color); }
+  20%  { transform: scale(1.05); filter: brightness(2); background: #fff; border-color: #fff; box-shadow: 0 0 100px 50px #fff; }
+  50%  { transform: scale(0.95); filter: brightness(1); background: var(--card); box-shadow: 0 0 60px 20px var(--boss-color); }
+  100% { transform: scale(1); opacity: 0; box-shadow: none; }
+}
+@keyframes bossFloat {
+  0%, 100% { transform: translateY(-50%); }
+  50%      { transform: translateY(-60%); }
+}
+@keyframes winBurst {
+  0%   { transform: scale(0.8); opacity: 0; }
+  50%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 10px var(--ok), 0 0 20px var(--ok); }
+  50%      { text-shadow: 0 0 20px var(--ok), 0 0 40px var(--ok), 0 0 60px #fff; }
+}
+@keyframes loseShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80%      { transform: translateX(5px); }
+}
+@keyframes darkPulse {
+  0%   { box-shadow: inset 0 0 20px rgba(197, 48, 48, 0.3); }
+  50%  { box-shadow: inset 0 0 60px rgba(197, 48, 48, 0.6); }
+  100% { box-shadow: inset 0 0 20px rgba(197, 48, 48, 0.3); }
+}
+@keyframes losePulse {
+  0%, 100% { text-shadow: 0 0 10px var(--err), 0 0 20px transparent; }
+  50%      { text-shadow: 0 0 20px var(--err), 0 0 40px var(--err); }
+}
+
+/* --- Арена боя --- */
+.card.boss-arena {
+  --boss-color: #e53e3e;
+  border: 2px solid var(--boss-color) !important;
+  background: var(--card) !important;
+  padding: 24px 20px !important;
+  position: relative;
+  animation: animBreath 2.5s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+.card.boss-arena.answered-correct {
+  animation: bossAuraPulse 0.5s infinite ease-in-out, shake 0.4s ease-in-out !important;
+  border-color: var(--ok) !important;
+}
+.card.boss-arena.answered-wrong {
+  border-color: var(--err) !important;
+  animation: bossAuraPulse 0.5s infinite ease-in-out, shake 0.4s ease-in-out !important;
+}
+.card.boss-arena .q-text { text-shadow: 0 0 10px var(--boss-color); }
+.card.boss-arena.anim-vampire   { animation: animBreath 2s infinite ease-in-out, animVampire 2s infinite ease-in-out !important; }
+.card.boss-arena.anim-explosion { animation: animExplosion 1.5s forwards cubic-bezier(0.25, 1, 0.5, 1) !important; pointer-events: none; }
+
+/* --- Шапка босса внутри карточки --- */
+.boss-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.boss-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.boss-name {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--boss-color, var(--text));
+  text-shadow: 0 0 10px var(--boss-color, transparent);
+}
+.boss-avatar { filter: drop-shadow(0 0 10px var(--boss-color, transparent)); }
+
+/* --- Полоса HP --- */
+.boss-hp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.boss-hp-bar {
+  width: 100%;
+  height: 10px;
+  background: var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.boss-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444, #b91c1c);
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* --- Модалка-интро босса --- */
+#bossFightModal .card.boss-intro-card {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--boss-color, var(--accent)) !important;
+  border-radius: 20px;
+  animation: animBreath 2.5s infinite ease-in-out !important;
+  position: relative;
+  overflow: hidden;
+}
+#bossFightModal .card.boss-intro-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, var(--boss-color, transparent) 0%, transparent 70%);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* --- Экран победы --- */
+#bossResultModal .win-card {
+  background: linear-gradient(135deg, #1a2a22 0%, #0f1115 100%) !important;
+  border: 2px solid var(--ok) !important;
+  box-shadow: 0 0 50px rgba(16, 185, 129, 0.4), inset 0 0 30px rgba(16, 185, 129, 0.2) !important;
+  animation: winBurst 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+#bossResultModal .win-title {
+  color: var(--ok) !important;
+  animation: textGlow 2s infinite ease-in-out;
+}
+#bossResultModal .win-icon {
+  font-size: 80px;
+  animation: winBurst 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* --- Экран поражения --- */
+#bossResultModal .lose-card {
+  background: linear-gradient(135deg, #2a0f12 0%, #0f1115 100%) !important;
+  border: 2px solid var(--err) !important;
+  animation: loseShake 0.5s ease-in-out, darkPulse 2s infinite ease-in-out;
+}
+#bossResultModal .lose-title {
+  color: var(--err) !important;
+  text-shadow: 0 0 15px var(--err);
+  animation: losePulse 2s infinite ease-in-out;
+}
+#bossResultModal .lose-icon {
+  font-size: 80px;
+  filter: grayscale(1) drop-shadow(0 0 20px var(--err));
+}
+
+/* --- Кнопки модалки результата --- */
+#bossResultXp {
+  color: var(--muted) !important;
+  font-size: 15px !important;
+  font-style: normal !important;
+  margin-top: 16px !important;
+  margin-bottom: 8px !important;
+  opacity: 0.8;
+}
+
+#closeBossResultBtn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  width: 100% !important;
+  margin-top: 16px !important;
+  transition: background 0.2s, border-color 0.2s !important;
+}
+#closeBossResultBtn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* --- Кнопки интро боя --- */
+#bossFightStart {
+  background: rgba(247, 3, 3, 0.6);
+  color: #fff !important;
+  border: none !important;
+  padding: 14px 28px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+}
+#bossFightCancel {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--border) !important;
+  padding: 14px 28px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+
+/* =========================================================
+   КАРТА ПРОГРЕССА
+   ========================================================= */
+
+/* Сетка карточек: ПК — grid, мобилки — flex-колонка */
+@media (min-width: 601px) {
+  #mapGrid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 16px !important;
+  }
+}
+@media (max-width: 600px) {
+  #mapGrid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+}
+
+/* --- Карточка темы --- */
+.map-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 20px !important;
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+  min-height: 120px !important;
+}
+.map-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Левая часть карточки */
+.map-card-content {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  padding-right: 80px !important; /* место под иконку справа */
+}
+.map-card-title {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+  margin-bottom: 8px !important;
+  color: var(--text) !important;
+}
+.map-card-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Бейджи статусов */
+.map-card-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-badge-red    { background: var(--err-bg);  color: var(--err);  }
+.status-badge-green  { background: var(--ok-bg);   color: var(--ok);   }
+.status-badge-yellow { background: var(--warn-bg); color: var(--warn); }
+.status-badge-gray   { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+/* Правая часть: круг прогресса ИЛИ иконка босса — центрируются абсолютно */
+.map-boss-icon,
+.map-card-circle {
+  position: absolute !important;
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 72px !important;
+  height: 72px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  
+}
+
+/* Босс на карточке — «парит» */
+.map-boss-icon {
+  font-size: 56px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s !important;
+  animation: bossFloat 3s infinite ease-in-out;
+}
+.map-boss-icon:hover { transform: translateY(-50%) scale(1.1) !important; }
+
+/* SVG-круг прогресса */
+.map-card-circle svg {
+  width: 100% !important;
+  height: 100% !important;
+  transform: rotate(-90deg) !important;
+}
+.map-card-circle .bg {
+  stroke: var(--border) !important;
+  fill: none !important;
+  stroke-width: 4 !important;
+}
+.map-card-circle .fg {
+  fill: none !important;
+  stroke-width: 4 !important;
+  stroke-linecap: round !important;
+  stroke: var(--accent) !important;
+}
+.map-card-circle .pct {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* =========================================================
+   ЗОЛОТАЯ КАРТОЧКА (ТЕМА С ПОБЕЖДЁННЫМ БОССОМ)
+   ========================================================= */
+.map-boss-defeated {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%) !important;
+  border-color: var(--gold-border) !important;
+  box-shadow: 0 4px 15px rgba(214, 158, 46, 0.3) !important;
+}
+.map-boss-defeated .map-card-title {
+  color: var(--gold-text) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .map-boss-defeated {
+    background: linear-gradient(135deg, #2a2010 0%, #3d2c15 100%) !important;
+    border-color: #b7791f !important;
+    box-shadow: 0 4px 15px rgba(214, 158, 46, 0.2) !important;
+  }
+}
+
+/* Блик, бегущий по золотой карточке */
+@keyframes shineEffect {
+  0%   { left: -100%; }
+  20%  { left: 200%; }
+  100% { left: 200%; }
+}
+.map-boss-defeated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,215,0,0.2) 50%,
+    rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: shineEffect 5s infinite;
+  pointer-events: none;
+}
+
+/* =========================================================
+   НИЖНИЕ БОССЫ (ФИНАЛЬНЫЙ И УЛЬТРА)
+   ========================================================= */
+.boss-bottom-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+@media (max-width: 600px) {
+  .boss-bottom-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.boss-final-btn,
+.boss-ultra-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 24px 16px !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  border: 1px solid var(--border) !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.boss-final-btn:hover,
+.boss-ultra-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.boss-btn-icon  { font-size: 32px; margin-bottom: 8px; }
+.boss-btn-title { font-weight: 800; font-size: 16px; margin-bottom: 4px; color: var(--text); }
+.boss-btn-desc  { font-size: 13px; color: var(--muted); }
+
+/* Цветовой акцент сверху (не побеждён) */
+.boss-final-btn { border-top: 4px solid var(--accent) !important; }
+.boss-ultra-btn { border-top: 4px solid var(--err) !important; }
+
+/* Состояние «побеждён» — золото */
+.boss-final-btn.boss-defeated,
+.boss-ultra-btn.boss-defeated {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%) !important;
+  border: 1px solid var(--gold-border) !important;
+  border-top: 4px solid var(--gold-border) !important;
+  box-shadow: 0 4px 15px rgba(214, 158, 46, 0.3) !important;
+}
+.boss-final-btn.boss-defeated .boss-btn-title,
+.boss-ultra-btn.boss-defeated .boss-btn-title {
+  color: var(--gold-text) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .boss-final-btn.boss-defeated,
+  .boss-ultra-btn.boss-defeated {
+    background: linear-gradient(135deg, #2a2010 0%, #3d2c15 100%) !important;
+    border-top-color: var(--gold-text) !important;
+  }
+}
+
+/* Небольшая кнопка босса внутри карточки темы */
+.map-boss-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.map-boss-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.map-boss-btn[data-defeated="true"] {
+  background: transparent;
+  color: var(--ok);
+  border-color: var(--ok);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* =========================================================
+   КВЕСТЫ, ТОП ОШИБОК И РАЗБОР ОТВЕТОВ
+   ========================================================= */
+
+/* --- Квесты --- */
+.quest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  margin-bottom: 10px;
+}
+.quest-item.done { border-color: var(--ok); background: var(--ok-bg); }
+.quest-check {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  color: transparent;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+.quest-item.done .quest-check {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+.quest-info  { flex: 1; }
+.quest-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.quest-desc  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.quest-xp    { font-weight: 800; font-size: 14px; color: var(--accent); }
+
+/* --- Топ ошибок --- */
+.top-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.top-filters label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+.top-filters select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.top-list-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.top-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.top-card-id    { font-weight: 800; color: var(--accent); font-size: 16px; }
+.top-card-stats { font-size: 13px; color: var(--muted); font-weight: 600; }
+.top-card-q     { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.top-card-topic { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.top-card-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* --- Разбор ответов (review) --- */
+.review-item {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+}
+.review-item.correct { border-left: 4px solid var(--ok) !important; }
+.review-item.wrong   { border-left: 4px solid var(--err) !important; }
+.review-item.skipped { border-left: 4px solid var(--muted) !important; }
+
+.r-head    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.r-id      { font-weight: 800; color: var(--accent); font-size: 14px; }
+.r-topic   { font-size: 12px; color: var(--muted); }
+.r-status  { font-size: 13px; font-weight: 700; }
+.r-status.correct { color: var(--ok); }
+.r-status.wrong   { color: var(--err); }
+.r-q       { font-size: 15px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; color: var(--text); }
+.r-options { display: flex; flex-direction: column; gap: 6px; }
+.r-opt {
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+.r-opt.chosen-correct,
+.r-opt.correct       { background: var(--ok-bg) !important;  border-color: var(--ok) !important; }
+.r-opt.chosen-wrong  { background: var(--err-bg) !important; border-color: var(--err) !important; }
+.r-opt .marker       { font-weight: 800; width: 18px; text-align: center; color: var(--muted); }
+.r-opt.correct .marker,
+.r-opt.chosen-correct .marker { color: var(--ok);  }
+.r-opt.chosen-wrong .marker   { color: var(--err); }
+
+/* Аккордеон разбора */
+#reviewBody { background: var(--bg); padding: 16px; }
+.review-accordion { transition: all 0.2s ease; }
+.review-accordion.open {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent) !important;
+}
+.review-accordion .review-header:active { background: rgba(0, 0, 0, 0.05); }
+#reviewBody .btn-secondary {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 10px;
+  color: var(--text);
+  transition: all 0.2s;
+}
+#reviewBody .btn-secondary:active { background: var(--bg); }
+
+#reviewListContent > div {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* --- Тосты геймификации --- */
+#gamificationToasts { z-index: var(--z-toast) !important; }
+#gamificationToasts > div {
+  max-width: 90vw !important;
+  min-width: 280px !important;
+  width: max-content !important;
+  padding: 12px 20px !important;
+  font-size: 15px !important;
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+  backdrop-filter: blur(10px);
+  pointer-events: none !important;
+}
+@media (min-width: 768px) {
+  #gamificationToasts > div { max-width: 400px !important; }
+}
+/* Иконки по статусу — используем data-атрибут вместо inline-стилей (если можно — замените в JS) */
+#gamificationToasts > div[data-status="ok"]   { border-color: var(--ok)   !important; color: var(--ok)   !important; background-color: var(--ok-bg)   !important; }
+#gamificationToasts > div[data-status="err"]  { border-color: var(--err)  !important; color: var(--err)  !important; background-color: var(--err-bg)  !important; }
+#gamificationToasts > div[data-status="warn"] { border-color: var(--warn) !important; color: var(--warn) !important; background-color: var(--warn-bg) !important; }
+
+/* --- Конфетти --- */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-100vh) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(100vh)  rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 10px;
+  height: 10px;
+  z-index: var(--z-toast);
+  animation: confetti-fall 3s linear forwards;
+  pointer-events: none;
+}
+
+/* --- Настройки --- */
+.settings-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+
+}
+.cell-head { font-weight: 700; font-size: 14px; color: var(--text); }
+.settings-cell label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--text);
+  
+}
+.settings-cell select,
+.settings-cell input[type="file"] {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  
+}
+.topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: auto;
+  max-height: 2000px;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* --- Статистика --- */
+#statsOverlay .modal-body {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  padding: 16px;
+}
+@media (min-width: 768px) {
+  #statsOverlay .modal-body { grid-template-columns: 1fr 1fr; }
+}
+#statsOverlay .card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   iOS-СПЕЦИФИКА (safe-area, tap-highlight, скролл)
+   ========================================================= */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  -webkit-tap-highlight-color: rgba(43, 108, 176, 0.15);
+  overscroll-behavior-y: none;
+}
+button, .btn-primary, .btn-secondary, .opt, .nav-card-large, .daily-goal-card,
+.gamification-header, .map-card, .map-boss-btn, .top-item, .review-item,
+label, select, [onclick], [role="button"] {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+input, select, textarea { font-size: 16px !important; } /* предотвращает зум на iOS */
+input[type="checkbox"],
+input[type="radio"] { width: 22px; height: 22px; min-width: 22px; accent-color: var(--accent); }
+
+/* Safe-area для контейнера */
+.app-container {
+  padding-top:    max(16px, env(safe-area-inset-top)) !important;
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+  padding-left:   max(16px, env(safe-area-inset-left)) !important;
+  padding-right:  max(16px, env(safe-area-inset-right)) !important;
+}
+.modal-overlay .modal-header,
+#testModal .modal-header { padding-top: max(14px, env(safe-area-inset-top)); }
+.modal-overlay .modal-body { padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px)); }
+#mapOverlay > :first-child,
+#statsOverlay > :first-child,
+#reviewListOverlay > :first-child { padding-top: max(12px, env(safe-area-inset-top)) !important; }
+#mapOverlay, #statsOverlay, #reviewListOverlay {
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-overflow-scrolling: touch;
+}
+#gamificationToasts { bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)) !important; }
+.test-close-bar { padding-top: env(safe-area-inset-top); }
+.modal-body, #mapOverlay, #statsOverlay, #reviewListOverlay,
+.topics-list, .search-results { overscroll-behavior: contain; }
+
+/* Минимальные зоны нажатия */
+.btn-primary, .btn-secondary, .btn-block, .test-close-btn,
+.icon-btn-close, .map-boss-btn, .ios-mini { min-height: 44px; }
+.icon-btn-close { min-width: 44px; }
+#quiz .opt, .opt { min-height: 52px; }
+#quiz button, .quiz-nav button { min-height: 46px; }
+
+/* Отключение hover-эффектов на тач-устройствах */
+@media (hover: none) {
+  .opt:hover, .nav-card-large:hover, .map-card:hover,
+  .daily-goal-card:hover, .top-item:hover {
+    transform: none !important;
+    box-shadow: inherit;
+  }
+  .btn-primary:active, .btn-secondary:active, .nav-card-large:active,
+  .daily-goal-card:active, .map-card:active, .opt:active,
+  .btn-block:active, .ios-mini:active {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+}
+
+/* --- Плашка «нет JS» --- */
+#nojsWarning {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0f1115;
+  color: #f1f5f9;
+  padding: max(24px, env(safe-area-inset-top)) 22px 24px;
+  overflow: auto;
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#nojsWarning h2 { font-size: 22px; margin: 8px 0 12px; }
+#nojsWarning li { margin-bottom: 8px; }
+#nojsWarning .hint {
+  background: #1a1d24;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  color: #cbd5e1;
+}
+
+/* --- iOS data / backup / sheets --- */
+.ios-data-btn { width: 100%; margin-top: 10px; }
+.ios-kv {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.ios-kv span { color: var(--muted); }
+.ios-kv b    { text-align: right; word-break: break-word; }
+.ios-p       { font-size: 13px; color: var(--muted); margin: 6px 0 10px; line-height: 1.45; }
+#iosDataBody .btn-primary,
+#iosDataBody .btn-secondary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  font-size: 16px;
+}
+#iosDataBody .settings-cell { margin-bottom: 14px; }
+.ios-note {
+  background: var(--warn-bg, rgba(245, 158, 11, 0.15));
+  color: var(--text);
+  border: 1px solid var(--warn, #f59e0b);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 14px;
+  line-height: 1.45;
+ 
+}
+.ios-note-err {
+  background: var(--err-bg, rgba(239, 68, 68, 0.15));
+  border-color: var(--err, #ef4444);
+}
+.ios-sets   { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.ios-set {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.ios-set.active { border-color: var(--accent); }
+.ios-set b { word-break: break-all; }
+.ios-set .ios-p { margin: 2px 0 0; }
+.ios-set-btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.ios-mini {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ios-mini-del { color: var(--err); }
+.ios-tag { font-size: 12px; font-weight: 700; color: var(--accent); }
+
+.ios-sheet-overlay {
+  position: fixed; inset: 0; z-index: 100000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.ios-sheet {
+  width: 100%; max-width: 520px;
+  background: var(--card); color: var(--text);
+  border-radius: 18px 18px 0 0;
+  padding: 18px 16px max(18px, calc(env(safe-area-inset-bottom) + 12px));
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+}
+.ios-sheet-title { font-weight: 800; font-size: 18px; text-align: center; }
+.ios-sheet-sub   { font-size: 13px; color: var(--muted); text-align: center; word-break: break-all; margin-bottom: 4px; }
+.ios-sheet button { width: 100%; padding: 14px; font-size: 16px; }
+
+/* Баннер установки PWA */
+.ios-install-banner {
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+  z-index: 5000;
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  padding: 12px 12px 12px 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  font-size: 14px; line-height: 1.45;
+}
+.ios-install-banner .ios-install-text { flex: 1; }
+.ios-install-banner > button {
+  flex-shrink: 0;
+  min-width: 44px; min-height: 44px;
+  border: none; background: transparent;
+  color: var(--muted); font-size: 18px;
+}
+.ios-install-banner.ios-update > button {
+  background: var(--accent); color: #fff;
+  min-width: auto; padding: 0 14px;
+  border-radius: 10px; font-size: 14px;
+}
+.ios-share-ico {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+/* Плашка бэкапа */
+.ios-backup-bar {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--ok, #10b981);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.ios-backup-bar.floating {
+  position: fixed; left: 12px; right: 12px;
+  z-index: 5100;
+  bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.ios-backup-bar.inline { margin: 12px 16px 4px; }
+.ios-backup-text { display: flex; flex-direction: column; gap: 2px; }
+.ios-backup-text span { color: var(--muted); font-size: 13px; }
+.ios-backup-btns { display: flex; gap: 8px; }
+.ios-backup-btns .btn-primary {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+/* Экран восстановления */
+#iosRestoreScreen {
+  position: fixed; inset: 0; z-index: 99000;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  overflow: auto;
+}
+.ios-restore-card {
+  width: 100%; max-width: 460px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px 20px;
+  text-align: center;
+}
+.ios-restore-card h2 { margin: 8px 0 10px; font-size: 22px; }
+.ios-restore-card p  { font-size: 15px; line-height: 1.5; color: var(--text); }
+.ios-restore-card button { width: 100%; margin-top: 12px; padding: 14px; font-size: 16px; }
+
+.ios-field { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; }
+.ios-field select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* =========================================================
+   ФИНАЛЬНЫЕ ФИКСЫ (кнопки закрытия, инпуты)
+   ========================================================= */
+
+/* Кнопки-крестики — строго 36×36, круглые */
+button.icon-btn-close,
+button.modal-close-btn,
+#mobileSettingsModal .icon-btn-close,
+#mobileStatsModal .icon-btn-close {
+  border: none;
+  width: 36px !important; height: 36px !important;
+  min-width: 36px !important; min-height: 36px !important;
+  max-width: 36px !important; max-height: 36px !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  font-size: 16px !important;
+  background: var(--bg);
+}
+
+/* Шапка модалок */
+.modal-header {
+  display: flex !important;
+  height: 50px;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 16px 20px !important;
+}
+
+/* Инпуты */
+input[type="search"],
+input[type="text"] { font-size: 15px !important; }
+
+/* Чекбоксы в списке тем */
+.topics-list input[type="checkbox"] {
+  width: 20px !important; height: 20px !important;
+  min-width: 20px !important; min-height: 20px !important;
+  margin: 0 !important;
+}
+
+/* Кнопка выбора файла */
+input[type="file"]::file-selector-button {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Закрытие в разборе ответов */
+#reviewModal .icon-btn-close {
+  background: transparent !important;
+  border: none !important;
+  color: var(--muted) !important;
+  width: 44px !important; height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 24px !important;
+  cursor: pointer;
+}
+#reviewModal .icon-btn-close:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+/* =========================================================
+   ЭКСТРЕННЫЙ ФИКС: фон модалок и кнопки закрытия
+   Причина: часть модалок открывается через style="display:flex",
+   без класса .modal-overlay, поэтому базовое правило на них
+   не действовало.
+   ========================================================= */
+
+/* 1) Фон для ВСЕХ модалок, независимо от того, как они открыты.
+      Используем и класс, и id — так надёжнее. */
+.modal-overlay,
+#mobileSettingsModal,
+#mobileStatsModal,
+#mobileTopModal,
+#testModal,
+#reviewModal,
+#questsModal,
+#recordsModal,
+#badgesModal,
+#buildModal,
+#bossFightModal,
+#bossResultModal {
+  background: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* 2) Полноэкранные (карта, статистика, топ) — без затемнения, но с фоном */
+#mapOverlay,
+#mobileStatsModal,
+#mobileTopModal {
+  background: var(--bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 3) Внутренняя карточка модалки — гарантированно читаемая */
+.modal-content,
+#questsModal .card,
+#recordsModal .card,
+#badgesModal .card,
+#buildModal .card,
+#bossFightModal .card,
+#bossResultModal .card,
+#reviewListOverlay .card {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+ 
+  border-radius: 20px;
+}
+
+/* 4) Тело модалки настроек — серый фон, чтобы блоки не сливались */
+#mobileSettingsModal .modal-body {
+  background: var(--bg) !important;
+  padding: 20px !important;
+}
+#mobileSettingsModal .settings-cell {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+/* 5) Кнопки закрытия — единый вид для ВСЕХ вариантов разметки.
+      Работает и для .icon-btn-close, и для .modal-close-btn,
+      и для случая с ошибочным классом ".\modal-close-btn",
+      и для #closeRecordsBtn, и для .ghost внутри modal-header. 
+.modal-header .icon-btn-close,
+.modal-header .modal-close-btn,
+.modal-header button[id$="CloseBtn"],
+.modal-header button.ghost,
+#closeBossResultBtn {
+  width: auto !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  flex-shrink: 0 !important;
+  
+}
+
+/* Отдельно — крестики именно «иконкой» (настройки/статистика) 
+#mobileSettingsModal .icon-btn-close,
+#mobileStatsModal .icon-btn-close,
+#mobileTopModal .icon-btn-close,
+#reviewModal .icon-btn-close,
+#buildModal .icon-btn-close {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  font-size: 18px !important;
+}
+*/
+/* 6) Кнопка «Продолжить» в модалке результата босса —
+      не должна наследовать «узкий» вид крестика. */
+#closeBossResultBtn {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 14px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  margin-top: 16px !important;
+}
+#closeBossResultBtn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 7) Фикс «#closeRecordsBtn с классом .modal-close-btn» —
+      убедимся, что крестик рисуется. */
+#closeRecordsBtn {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  width: 44px !important;
+  height: 44px !important;
+
+  font-size: 18px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* =========================================================
+   RECORD-ITEM: текст слева, значение справа
+   ========================================================= */
+.record-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+
+  padding: 12px 16px !important;
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Текст-описание — может переноситься, занимает доступное место */
+.record-item > span {
+  flex: 1 1 auto;
+  min-width: 0;              /* чтобы длинный текст не выпихивал число */
+  line-height: 1.35;
+}
+
+/* Число/значение — прижато вправо, не сжимается */
+.record-item > b {
+  flex: 0 0 auto;
+  white-space: nowrap;       /* «12 / 15 (80%) · 340 очков» не рвётся */
+  text-align: right;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+/* =========================================================
+   ФИКС НИЖНИХ КНОПОК В ТЕСТЕ (Список и Завершить)
+   ========================================================= */
+
+/* 1. Общий вид для обеих кнопок */
+.test-action-btn {
+  background: var(--accent)  !important; /* На сером фоне модалки будет выделяться */
+  border: 1px solid var(--border) !important;
+  color: var(--bg) !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important; /* Легкая тень для объема */
+}
+
+/* Эффект при нажатии/наведении */
+.test-action-btn:hover {
+  background: var(--bg) !important;
+  border-color: var(--muted) !important;
+}
+.test-action-btn:active {
+  transform: scale(0.98);
+}
+
+/* 2. Специфично для кнопки "Список вопросов" (делаем акцент на иконке) */
+
+
+/* =========================================================
+   АДАПТАЦИЯ ПОД ТЕМНУЮ ТЕМУ
+   ========================================================= */
+
+/* Принудительная темная тема (body.dark-theme) */
+body.dark-theme .test-action-btn {
+  background: var(--bg) !important; /* Слегка светлее фона */
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dark-theme #toggleJumpBtn {
+  color: var(--accent) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+body.dark-theme #finishTestBtn {
+  color: #94a3b8 !important; /* Светло-серый */
+}
+
+body.dark-theme #finishTestBtn:hover {
+  color: var(--err) !important;
+  border-color: var(--err) !important;
+  background: var(--err-bg) !important;
+}
+
+/* Системная темная тема */
+@media (prefers-color-scheme: dark) {
+  .test-action-btn {
+    background: var(--bg) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+      color:var(--accent)!important;
+  }
+  #finishTestBtn {
+    color:var(--err)!important;
+  }
+}
+
+/* =========================================================
+   ФИКС КНОПКИ "ПРОДОЛЖИТЬ" В МОДАЛКЕ БОССА
+   ========================================================= */
+#closeBossResultBtn {
+  background: var(--accent-hover) !important; /* Серый/светлый фон в светлой теме, темный в темной */
+  color: var(--text) !important;    /* Контрастный текст */
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  width: 100% !important;
+  margin-top: 16px !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+#closeBossResultBtn:hover {
+  background: var(--border) !important;
+}
+
+/* В темной теме (карточка босса темная, поэтому кнопка тоже должна быть темной) */
+body.dark-theme #closeBossResultBtn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+body.dark-theme #closeBossResultBtn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+#mapOverlay {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important; /* Плавный скролл на iOS */
+}
+
+
+/* =========================================================
+   КНОПКА "ПРОДОЛЖИТЬ" В РЕЗУЛЬТАТЕ БОССА
+   ========================================================= */
+
+/* Базовый вид (светлая тема) */
+#closeBossResultBtn {
+  background: #e2e8f0 !important; /* Светло-серый (контрастный на белом) */
+  color: #1a202c !important;      /* Темный текст */
+  border: 1px solid #cbd5e0 !important;
+  border-radius: 12px !important;
+  padding: 14px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  width: 100% !important;
+  margin-top: 20px !important;
+  transition: background 0.2s, color 0.2s !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+#closeBossResultBtn:hover {
+  background: #cbd5e0 !important;
+}
+
+/* Темная тема (системная) */
+@media (prefers-color-scheme: dark) {
+  #closeBossResultBtn {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #f1f5f9 !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  #closeBossResultBtn:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+}
+
+/* Принудительная темная тема (если вдруг осталась на body) */
+body.dark-theme #closeBossResultBtn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+body.dark-theme #closeBossResultBtn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+/* =========================================================
+   МОДАЛКА ВЫБОРА ТЕМ
+   ========================================================= */
+.start-topics-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.topic-pick-card {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.topic-pick-card:hover { border-color: var(--accent); }
+.topic-pick-card.active {
+  border-color: var(--accent);
+  background: rgba(43, 108, 176, 0.08);
+}
+
+.topic-pick-card-content { flex: 1; min-width: 0; }
+.topic-pick-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.topic-pick-card-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.topic-pick-check {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: transparent;
+  transition: all 0.15s;
+}
+.topic-pick-card.active .topic-pick-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.preset-btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-btn:hover { border-color: var(--accent); }
+.preset-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.preset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.start-options-footer {
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+}
+.start-options-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.start-options-count {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.start-options-summary .btn-primary { width: 100%; }
+
+/* ═══════════════════════════════════════════════════════════
+   ЕДИНЫЙ ВИД КНОПОК ЗАКРЫТИЯ (крестики) — применяется везде
+   ═══════════════════════════════════════════════════════════ */
+.icon-btn-close,
+.modal-close-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  transition: background 0.15s, color 0.15s !important;
+  flex-shrink: 0 !important;
+}
+.icon-btn-close:hover,
+.modal-close-btn:hover {
+  background: var(--border) !important;
+}
+
+.start-options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: max(10px, env(safe-area-inset-top));
+}
+.start-options-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.start-options-header .icon-btn-close {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  font-size: 16px !important;
+}
+/* =========================================================
+   НОВЫЙ UI: МОДАЛКА ВЫБОРА ТЕМ (ФИКС)
+   ========================================================= */
+
+/* 1. Список тем */
+#startOptionsModal .start-topics-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+}
+
+/* 2. Карточка темы */
+#startOptionsModal .topic-pick-card {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+#startOptionsModal .topic-pick-card:active {
+  transform: scale(0.99);
+}
+
+/* 3. Выделение выбранной темы (без галочки!) */
+#startOptionsModal .topic-pick-card.active {
+  background: rgba(43, 108, 176, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.15);
+}
+
+#startOptionsModal .topic-pick-card.active .topic-pick-card-title {
+  color: var(--accent);
+}
+
+#startOptionsModal .topic-pick-card.active .topic-pick-card-meta {
+  color: rgba(43, 108, 176, 0.8);
+}
+
+/* 4. Внутренности карточки */
+#startOptionsModal .topic-pick-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+#startOptionsModal .topic-pick-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+#startOptionsModal .topic-pick-card-meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+/* 5. Кнопки-переключатели перемешивания в шапке */
+#startOptionsModal .header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+
+/* 6. Футер */
+#startOptionsModal .start-options-footer {
+  padding: 12px 16px;
+  padding-bottom: max(12px, calc(env(safe-area-inset-bottom) + 12px));
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+  z-index: 10;
+}
+
+#startOptionsModal .start-options-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#startOptionsModal .start-options-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+#startOptionsModal .start-options-summary .btn-primary {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+#startOptionsModal .start-options-summary .btn-primary:disabled {
+  background: var(--border);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+
+
+
+/* =========================================================
+   МОДАЛКА ВЫБОРА ТЕМ (ФИНАЛЬНЫЙ UI)
+   ========================================================= */
+
+/* Шапка */
+.start-options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.start-options-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* Единая скролл-зона */
+.start-scroll-area {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Пресеты (чипсы) */
+.presets-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap; 
+  padding: 12px 16px 8px 16px;
+  background: var(--bg);
+  flex-shrink: 0;
+  /* Гарантируем, что панель не будет растягиваться и налезать */
+  width: 100%;
+  box-sizing: border-box;
+}
+.preset-btn {
+  padding: 6px 12px;
+  font-size: 12px; /* Чуть уменьшили шрифт, чтобы влезало */
+  font-weight: 600;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.preset-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.preset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Список тем */
+.start-topics-list {
+  padding: 8px 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Карточка темы */
+.topic-pick-card {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.topic-pick-card:active {
+  transform: scale(0.99);
+}
+
+.topic-pick-card.active {
+  background: rgba(43, 108, 176, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.15);
+}
+
+.topic-pick-card.active .topic-pick-card-title {
+  color: var(--accent);
+}
+
+.topic-pick-card.active .topic-pick-card-meta {
+  color: rgba(43, 108, 176, 0.8);
+}
+
+/* Контент карточки */
+.topic-pick-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.topic-pick-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.topic-pick-card-meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+/* Футер */
+.start-options-footer {
+  padding: 12px 16px;
+  padding-bottom: max(12px, calc(env(safe-area-inset-bottom) + 12px));
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+  z-index: 10;
+}
+
+.start-options-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Кнопки перемешивания (в футере) */
+.shuffle-controls-row {
+  display: flex;
+  gap: 8px;
+}
+
+.shuffle-toggle-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.shuffle-toggle-btn.active {
+  background: rgba(43, 108, 176, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.start-options-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+.start-options-summary .btn-primary {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.start-options-summary .btn-primary:disabled {
+  background: var(--border);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+/* =========================================================
+   НАТИВНЫЕ ЧЕКБОКСЫ В ПРЕСЕТАХ
+   ========================================================= */
+
+/* Кнопка-иконка (без текста) */
+.preset-btn.icon-only {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+}
+
+/* Сам квадратик (по умолчанию пустой) */
+.native-checkbox {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--muted); /* Серый контур */
+  border-radius: 4px;
+  background-color: transparent;
+  position: relative;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+/* Состояние "выбрано" (с галочкой) */
+.native-checkbox.checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Рисуем белую галочку внутри */
+.native-checkbox.checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg); /* Поворачиваем, чтобы получилась галочка */
+}
+
+/* Если кнопка неактивна (disabled) */
+.preset-btn.icon-only:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Убираем стандартные стили активного пресета для иконок, 
+   чтобы они не заливались синим фоном целиком (заливка теперь внутри квадратика) */
+.preset-btn.icon-only.active {
+  background: var(--card);
+  border-color: var(--accent);
+}

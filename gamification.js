@@ -1,3 +1,4 @@
+// Правки для iOS: gamification.js оригинала; изменённые места помечены «Правки для iOS»
 /* =========================================================
    GAMIFICATION MODULE
    Фича 1: Серия дней (streak)
@@ -673,6 +674,10 @@ const mins = (window.TestApp && window.TestApp.getTodayActiveMinutes) ? window.T
   }
 
   /* ---------- Инициализация ---------- */
+  // Правки для iOS: главный экран вызывает onclick="openQuestsModal()" — функция была внутри замыкания, на телефоне кнопка «Квесты» не работала; делаем глобальной
+  window.openQuestsModal = openQuestsModal;
+  window.openBadgesModal = openBadgesModal;
+
   window.GameApp = {
     onAnswer, toast, addXp, unlockBadge,
     get state() { return state; },
@@ -708,7 +713,13 @@ const mins = (window.TestApp && window.TestApp.getTodayActiveMinutes) ? window.T
     const today = todayStr();
     const savedQuestDate = localStorage.getItem("gamification:questDate");
     
-    if (savedQuestDate !== today) { localStorage.setItem("gamification:questDate", today); initDailyGoal(); generateDailyQuests(); } 
+    // Правки для iOS: в новый день load() не вызывался и серия дней/рекорд обнулялись — сначала загружаем сохранённое, потом сбрасываем только дневные счётчики
+    if (savedQuestDate !== today) {
+        load();
+        state.todayCount = 0; state.todayGoalDone = false; state.goalProgress = 0; state.goalStreakCorrect = 0;
+        state.dailyQuests = []; state.dailyQuestsDoneBonus = false;
+        localStorage.setItem("gamification:questDate", today); initDailyGoal(); generateDailyQuests();
+    } 
     else { 
         load(); 
         if (!state.dailyQuests || state.dailyQuests.length === 0) generateDailyQuests();

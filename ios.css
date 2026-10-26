@@ -1,0 +1,130 @@
+/* Правки для iOS [начало]: ios.css — новые стили (в оригинале их не было): безопасные зоны iPhone, крупные зоны нажатия, окна и плашки iOS-модуля */
+/* ===================== iOS / iPhone адаптация ===================== */
+/* Правки для iOS: iOS сам увеличивает шрифт при повороте — фиксируем 100% */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Правки для iOS: мягкая подсветка нажатия и без «резиновой» прокрутки всей страницы */
+body { -webkit-tap-highlight-color: rgba(43,108,176,0.15); overscroll-behavior-y: none; }
+/* Правки для iOS: touch-action: manipulation убирает задержку 300 мс и двойной тап-зум; cursor:pointer — без него старые iOS не присылают click на div/label */
+button, .btn-primary, .btn-secondary, .opt, .nav-card-large, .daily-goal-card, .gamification-header,
+.map-card, .map-boss-btn, .top-item, .review-item, label, select, [onclick], [role="button"] {
+  touch-action: manipulation; cursor: pointer;
+}
+/* поля < 16px вызывают авто-зум в Safari */
+/* Правки для iOS: поля меньше 16px вызывают авто-зум в Safari */
+input, select, textarea { font-size: 16px !important; }
+input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; min-width: 22px; accent-color: var(--accent); }
+
+/* Безопасные зоны (чёлка / Dynamic Island / индикатор «домой») */
+/* Правки для iOS: отступы под чёлку/Dynamic Island и индикатор «Домой» (viewport-fit=cover) */
+.app-container {
+  padding-top: max(16px, env(safe-area-inset-top)) !important;
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+  padding-left: max(16px, env(safe-area-inset-left)) !important;
+  padding-right: max(16px, env(safe-area-inset-right)) !important;
+}
+.modal-overlay .modal-header, #testModal .modal-header { padding-top: max(14px, env(safe-area-inset-top)); }
+.modal-overlay .modal-body { padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 16px)); }
+#mapOverlay > :first-child, #statsOverlay > :first-child, #reviewListOverlay > :first-child { padding-top: max(12px, env(safe-area-inset-top)) !important; }
+#mapOverlay, #statsOverlay, #reviewListOverlay { padding-bottom: env(safe-area-inset-bottom); -webkit-overflow-scrolling: touch; }
+/* Правки для iOS: тосты выше индикатора «Домой» */
+#gamificationToasts { bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)) !important; }
+.test-close-bar { padding-top: env(safe-area-inset-top); }
+.modal-body, #mapOverlay, #statsOverlay, #reviewListOverlay, .topics-list, .search-results { overscroll-behavior: contain; }
+
+/* Крупные зоны нажатия (≥ 44pt по гайдлайнам Apple) */
+/* Правки для iOS: зоны нажатия ≥ 44pt по гайдлайнам Apple */
+.btn-primary, .btn-secondary, .btn-block, .test-close-btn, .icon-btn-close, .map-boss-btn, .ios-mini { min-height: 44px; }
+.icon-btn-close { min-width: 44px; }
+#quiz .opt, .opt { min-height: 52px; }
+#quiz button, .quiz-nav button { min-height: 46px; }
+
+/* Без hover на сенсорных экранах: убираем «залипание» и даём отклик на нажатие */
+/* Правки для iOS: на сенсорном экране hover «залипает» после тапа — отключаем, даём отклик :active */
+@media (hover: none) {
+  .opt:hover, .nav-card-large:hover, .map-card:hover, .daily-goal-card:hover, .top-item:hover { transform: none !important; box-shadow: inherit; }
+  .btn-primary:active, .btn-secondary:active, .nav-card-large:active, .daily-goal-card:active,
+  .map-card:active, .opt:active, .btn-block:active, .ios-mini:active { transform: scale(0.98); opacity: 0.85; }
+}
+
+/* Предупреждение, если JS не запустился (просмотр из Telegram/«Файлов») */
+/* Правки для iOS: экран «Кнопки не работают»: виден только если JS не запустился (превью Telegram/«Файлов») */
+#nojsWarning {
+  position: fixed; inset: 0; z-index: 99999; background: #0f1115; color: #f1f5f9;
+  padding: max(24px, env(safe-area-inset-top)) 22px 24px; overflow: auto;
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#nojsWarning h2 { font-size: 22px; margin: 8px 0 12px; }
+#nojsWarning li { margin-bottom: 8px; }
+#nojsWarning .hint { background: #1a1d24; border: 1px solid #2d3748; border-radius: 12px; padding: 12px 14px; margin-top: 14px; color: #cbd5e1; }
+
+/* Модуль «Прогресс и данные» */
+/* Правки для iOS: окно «Прогресс и данные» */
+.ios-data-btn { width: 100%; margin-top: 10px; }
+.ios-kv { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.ios-kv span { color: var(--muted); }
+.ios-kv b { text-align: right; word-break: break-word; }
+.ios-p { font-size: 13px; color: var(--muted); margin: 6px 0 10px; line-height: 1.45; }
+#iosDataBody .btn-primary, #iosDataBody .btn-secondary { width: 100%; margin-top: 10px; padding: 14px; font-size: 16px; }
+#iosDataBody .settings-cell { margin-bottom: 14px; }
+.ios-note { background: var(--warn-bg, rgba(245,158,11,.15)); color: var(--text); border: 1px solid var(--warn, #f59e0b); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 14px; line-height: 1.45; }
+.ios-note-err { background: var(--err-bg, rgba(239,68,68,.15)); border-color: var(--err, #ef4444); }
+.ios-sets { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.ios-set { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.ios-set.active { border-color: var(--accent); }
+.ios-set b { word-break: break-all; }
+.ios-set .ios-p { margin: 2px 0 0; }
+.ios-set-btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.ios-mini { border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+.ios-mini-del { color: var(--err); }
+.ios-tag { font-size: 12px; font-weight: 700; color: var(--accent); }
+
+/* Нижний лист «Поделиться / Скачать» */
+/* Правки для iOS: нижний лист «Поделиться / Скачать» для отдачи файлов */
+.ios-sheet-overlay { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,.5); display: flex; align-items: flex-end; justify-content: center; }
+.ios-sheet { width: 100%; max-width: 520px; background: var(--card); color: var(--text); border-radius: 18px 18px 0 0; padding: 18px 16px max(18px, calc(env(safe-area-inset-bottom) + 12px)); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -10px 30px rgba(0,0,0,.25); }
+.ios-sheet-title { font-weight: 800; font-size: 18px; text-align: center; }
+.ios-sheet-sub { font-size: 13px; color: var(--muted); text-align: center; word-break: break-all; margin-bottom: 4px; }
+.ios-sheet button { width: 100%; padding: 14px; font-size: 16px; }
+
+/* Баннер установки / обновления */
+/* Правки для iOS: баннер «На экран Домой» / «Доступна новая версия» */
+.ios-install-banner { position: fixed; left: 12px; right: 12px; bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px)); z-index: 5000;
+  display: flex; gap: 10px; align-items: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--accent);
+  border-radius: 14px; padding: 12px 12px 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); font-size: 14px; line-height: 1.45; }
+.ios-install-banner .ios-install-text { flex: 1; }
+.ios-install-banner > button { flex-shrink: 0; min-width: 44px; min-height: 44px; border: none; background: transparent; color: var(--muted); font-size: 18px; }
+.ios-install-banner.ios-update > button { background: var(--accent); color: #fff; min-width: auto; padding: 0 14px; border-radius: 10px; font-size: 14px; }
+.ios-share-ico { display: inline-block; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; font-size: 12px; }
+
+/* Всплывающие уведомления не должны перехватывать нажатия (в оригинале pointer-events:auto
+   — тост внизу экрана «съедал» тапы по кнопке «Далее») */
+/* Правки для iOS: тост внизу экрана перехватывал тапы по «Далее» (в оригинале pointer-events:auto) */
+#gamificationToasts, #gamificationToasts > * { pointer-events: none !important; }
+
+/* В оригинале справа у текста вопроса резервировалось 110px под кнопки (десктоп).
+   На телефоне кнопки стоят отдельной строкой сверху — отдаём тексту всю ширину. */
+/* Правки для iOS: на телефоне текст вопроса занимал не всю ширину (110px резерва под десктопные кнопки) */
+#mobileQuiz .q-text { padding-right: 0 !important; }
+
+/* Плашка «Сохранить копию» */
+/* Правки для iOS: плашка «Сохранить копию» (автонапоминание о резервной копии) */
+.ios-backup-bar { display: flex; flex-direction: column; gap: 10px; background: var(--card); color: var(--text);
+  border: 1px solid var(--ok, #10b981); border-radius: 14px; padding: 12px 14px; font-size: 14px; }
+.ios-backup-bar.floating { position: fixed; left: 12px; right: 12px; z-index: 5100; bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px)); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.ios-backup-bar.inline { margin: 12px 16px 4px; }
+.ios-backup-text { display: flex; flex-direction: column; gap: 2px; }
+.ios-backup-text span { color: var(--muted); font-size: 13px; }
+.ios-backup-btns { display: flex; gap: 8px; }
+.ios-backup-btns .btn-primary { flex: 1; padding: 10px 12px; font-size: 15px; border-radius: 10px; }
+/* Экран «Восстановить прогресс» */
+/* Правки для iOS: экран «Восстановить прогресс из файла» при пустом хранилище */
+#iosRestoreScreen { position: fixed; inset: 0; z-index: 99000; background: var(--bg); display: flex; align-items: center; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); overflow: auto; }
+.ios-restore-card { width: 100%; max-width: 460px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px 20px; text-align: center; }
+.ios-restore-card h2 { margin: 8px 0 10px; font-size: 22px; }
+.ios-restore-card p { font-size: 15px; line-height: 1.5; color: var(--text); }
+.ios-restore-card button { width: 100%; margin-top: 12px; padding: 14px; font-size: 16px; }
+/* Правки для iOS: строки настроек (частота автокопии) */
+.ios-field { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; }
+.ios-field select { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+/* Правки для iOS [конец]: ios.css */
