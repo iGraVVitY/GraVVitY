@@ -369,33 +369,61 @@ body.dark-theme .opt {
 .opt.correct { background: var(--ok-bg);  border-color: var(--ok); }
 .opt.wrong   { background: var(--err-bg); border-color: var(--err); }
 
-/* --- Кастомные радиокнопки --- */
+/* Скрываем стандартные радиокнопки, но оставляем их для логики и доступности */
 .opt input[type="radio"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--muted);
-  background-color: transparent;
-  margin-top: 1px;
-  flex-shrink: 0;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.opt:hover input[type="radio"]        { border-color: var(--accent); }
-.opt input[type="radio"]:checked      { border-color: var(--accent); background-color: var(--accent); }
-.opt input[type="radio"]:checked::after {
-  content: '';
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background-color: #fff;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
-.opt.correct input[type="radio"]:checked { border-color: var(--ok);  background-color: var(--ok);  }
-.opt.wrong   input[type="radio"]:checked { border-color: var(--err); background-color: var(--err); }
+
+/* Освобождаем место под текст (убираем gap и padding, который был под кружочек) */
+.opt {
+  display: flex;
+  align-items: center; /* Выравниваем текст по центру */
+  gap: 0;              /* Убираем отступ под иконку */
+  padding: 14px 16px;  /* Делаем отступы чуть больше для пальца */
+  border: 2px solid var(--border); /* Чуть толще рамка для наглядности */
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  background: var(--card);
+  transition: all 0.2s ease; /* Плавная анимация при нажатии */
+}
+
+/* Эффект при наведении (для ПК) */
+.opt:hover {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+/* Стиль для выбранного, но еще не проверенного варианта (до ответа) */
+.opt.chosen-plain {
+  border-color: var(--accent);
+  background: var(--accent-hover); /* Или любой другой цвет, если не нравится */
+  color: #fff;
+}
+
+/* Стиль для правильного ответа (после проверки) */
+.opt.correct {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+/* Стиль для неправильного (ошибочного) ответа */
+.opt.wrong {
+  background: var(--err-bg);
+  border-color: var(--err);
+  color: var(--err);
+}
+
+/* Если ответ заблокирован (нельзя изменить) */
+.opt.locked {
+  cursor: default;
+  opacity: 0.8;
+}
 
 /* --- Кнопки «Назад / Далее» --- */
 #quiz .nav {
