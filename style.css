@@ -459,6 +459,8 @@ body.dark-theme .opt {
   align-items: center !important;
   margin-bottom: 12px !important;
   gap: 8px !important;
+  padding: 1%;
+
 }
 .card-actions > div:last-child { display: flex; gap: 8px; }
 
@@ -1345,7 +1347,7 @@ input[type="radio"] { width: 22px; height: 22px; min-width: 22px; accent-color: 
 .icon-btn-close, .map-boss-btn, .ios-mini { min-height: 44px; }
 .icon-btn-close { min-width: 44px; }
 #quiz .opt, .opt { min-height: 52px; }
-#quiz button, .quiz-nav button { min-height: 46px; }
+
 
 /* Отключение hover-эффектов на тач-устройствах */
 @media (hover: none) {

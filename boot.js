@@ -107,17 +107,58 @@
   function schedule() {
     if (suspended) return;
     clearTimeout(timer);
-    timer = setTimeout(backupNow, 600);
+    // Правки для iOS (v5): задержка копии 600 → 300 мс — меньше шанс потерять последний ответ при закрытии приложения
+    timer = setTimeout(backupNow, 300);
+  }
+  // Правки для iOS (v5): копия «почти сразу» (в том же цикле событий собираем все записи ответа в одну транзакцию) — вызывается после каждого ответа
+  function backupSoon() {
+    if (suspended || !ls) return;
+    clearTimeout(timer);
+    timer = setTimeout(backupNow, 0);
+  }
+  // Правки для iOS (v5): переполнение localStorage (лимит Safari ~5 МБ: наборы вопросов, черновики редактора) раньше молча
+  // обрывало сохранение статистики. Теперь при переполнении удаляем черновики редактора и повторяем запись; если не помогло — предупреждаем.
+  var quotaWarned = false;
+  function isQuotaError(e) { return e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014 || /quota/i.test(String(e.message || ""))); }
+  function freeSpace() {
+    var freed = 0;
+    try {
+      var del = [];
+      for (var i = 0; i < ls.length; i++) { var k = ls.key(i); if (k && /^editor:draft:/.test(k)) del.push(k); }
+      del.forEach(function (k) { origRemove.call(ls, k); freed++; });
+    } catch (e) {}
+    return freed;
+  }
+  function warnQuota() {
+    if (quotaWarned) return; quotaWarned = true;
+    console.error("[boot] localStorage переполнен — прогресс может не сохраниться");
+    setTimeout(function () {
+      var msg = "⚠️ Память браузера переполнена — прогресс может не сохраниться. Сохраните копию (💾 Прогресс → Экспорт) и удалите лишние наборы/черновики.";
+      if (window.GameApp && window.GameApp.toast) window.GameApp.toast(msg, "err", 8000); else alert(msg);
+    }, 300);
   }
   // Правки для iOS: перехват setItem/removeItem/clear: любое изменение прогресса через 0,6 с зеркалируется в IndexedDB — код оригинала менять не нужно
   if (proto && ls) {
-    proto.setItem = function (k, v) { var r = origSet.call(this, k, v); if (this === ls && !INTERNAL.test(k)) schedule(); return r; };
+    proto.setItem = function (k, v) {
+      var r;
+      try { r = origSet.call(this, k, v); }
+      catch (e) {
+        // Правки для iOS (v5): при переполнении — чистим черновики редактора и пробуем ещё раз
+        if (this !== ls || !isQuotaError(e) || !freeSpace()) { if (this === ls && isQuotaError(e)) warnQuota(); throw e; }
+        try { r = origSet.call(this, k, v); } catch (e2) { warnQuota(); throw e2; }
+      }
+      if (this === ls && !INTERNAL.test(k)) schedule();
+      return r;
+    };
     proto.removeItem = function (k) { var r = origRemove.call(this, k); if (this === ls && !INTERNAL.test(k)) schedule(); return r; };
     proto.clear = function () { var r = origClear.call(this); if (this === ls) schedule(); return r; };
   }
   // iOS не присылает beforeunload — сохраняемся при сворачивании/закрытии
   // Правки для iOS: iOS не присылает beforeunload — досохраняем копию при сворачивании (visibilitychange) и закрытии (pagehide)
-  function flush() { if (timer) backupNow(); }
+  // Правки для iOS (v5): раньше копия делалась только если был «отложенный» таймер. Но этот обработчик срабатывает РАНЬШЕ,
+  // чем app.js сохраняет сессию при сворачивании, — последняя сессия в копию не попадала. Теперь пишем копию всегда,
+  // плюс ещё раз сразу после остальных обработчиков (setTimeout 0).
+  function flush() { if (suspended) return; backupNow(); setTimeout(function () { if (timer) backupNow(); }, 0); }
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flush(); });
   window.addEventListener("pagehide", flush);
 
@@ -200,6 +241,7 @@
   window.IOSStore = {
     IDB: IDB,
     backupNow: backupNow,
+    backupSoon: backupSoon, // Правки для iOS (v5): копия сразу после ответа
     suspend: function (v) { suspended = v !== false; if (suspended) { clearTimeout(timer); timer = null; } },
     lastBackupAt: function () { return lastBackupAt; },
     persistState: persistState,
@@ -239,7 +281,8 @@
       ? ["src-chart", "src-questions", "src-app", "src-gamification", "src-ios"]
       : ["vendor/chart.umd.min.js", "questions.js", "app.js", "gamification.js", "ios.js"];
     var p = Promise.resolve();
-    list.forEach(function (item) { p = p.then(function () { return IS_SINGLE ? runInline(item) : loadSrc(item); }); });
+    // Правки для iOS (v5): questions.js на сайте может отсутствовать (наборы грузятся из sets/ с GitHub) — он необязательный, без ошибки в консоли
+    list.forEach(function (item) { p = p.then(function () { return IS_SINGLE ? runInline(item) : loadSrc(item, item === "questions.js"); }); });
     if (!IS_SINGLE) p = p.then(function () { return loadSrc("editor.js", true); }); // необязательный модуль
     return p;
   }
@@ -251,7 +294,8 @@
     try { name = ls && ls.getItem("ios:activeSet"); } catch (e) {}
     if (!name) return Promise.resolve();
     return IDB.get("sets", name).then(function (rec) {
-      if (rec && rec.text) window.__BOOT_SET = { name: rec.name || name, text: rec.text };
+      // Правки для iOS (v5): передаём и отображаемое имя набора (ключ в базе — хэш тем)
+      if (rec && rec.text) window.__BOOT_SET = { name: rec.name || name, displayName: rec.displayName || rec.name || name, text: rec.text };
     });
   }
 

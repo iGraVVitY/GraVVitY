@@ -13,8 +13,9 @@
   var EXPORT_APP = "1c-trainer-progress";
   var BACKUP_FILE = "trainer-progress.json";
   // Правки для iOS: номер версии iOS-сборки — виден в окне «💾 Прогресс и данные» (ключи хранения прогресса между версиями не меняются)
-  var IOS_VERSION = "4.0";
-  var IOS_VERSION_DATE = "25.10.2026";
+  // Правки для iOS (v5): версия 5.0 — надёжное автосохранение в приложении с экрана «Домой»
+  var IOS_VERSION = "5.0";
+  var IOS_VERSION_DATE = "26.10.2026";
   window.IOS_TRAINER_VERSION = IOS_VERSION;
 
   function $id(id) { return document.getElementById(id); }
@@ -141,11 +142,16 @@ function rememberSet(name, text, count, displayName) {
     // Сохраняем оригинальное имя внутри записи (для отображения пользователю)
     return rememberSet(key, text, Array.isArray(topics) ? topics.length : 0, name);
 };
+  // Правки для iOS (v5): при переключении набора убираем «последний набор» из localStorage (ios:savedSetText) —
+  // иначе он имел приоритет при запуске и переключение не срабатывало
+  function dropSavedSetText() { try { localStorage.removeItem("ios:savedSetText"); localStorage.removeItem("ios:savedSetPassword"); } catch (e) {} }
   function activateBuiltIn() {
+    dropSavedSetText();
     try { localStorage.removeItem("ios:activeSet"); } catch (e) {}
     setTimeout(function () { location.reload(); }, 150);
   }
   function activateSet(name) {
+    dropSavedSetText();
     try { localStorage.setItem("ios:activeSet", name); } catch (e) {}
     setTimeout(function () { location.reload(); }, 150);
   }
@@ -155,7 +161,9 @@ function rememberSet(name, text, count, displayName) {
       var topics;
       try { topics = parseTopicsFromText(text); } catch (e) { alert("Ошибка в файле вопросов: " + e.message); return; }
       if (!Array.isArray(topics) || !topics.length) { alert("В файле нет тем."); return; }
-      rememberSet(f.name, text, topics.length).then(function () {
+      // Правки для iOS (v5): ключ набора в базе — хэш тем (как в app.js), и набор становится «последним открытым»
+      try { localStorage.setItem("ios:savedSetText", text); localStorage.removeItem("ios:savedSetPassword"); } catch (e) { dropSavedSetText(); }
+      window.iosRememberSet(f.name, text, topics).then(function () {
         loadTopics(topics, f.name, f.name);
         if (typeof syncGamificationUI === "function") syncGamificationUI();
         toast("Загружено: " + f.name + " (" + topics.length + " тем). Файл запомнен на устройстве.", "ok", 4000);
@@ -254,8 +262,9 @@ function rememberSet(name, text, count, displayName) {
       (active ? '<button class="ios-mini" data-ios="builtin">Открыть</button>' : '<span class="ios-tag">активен</span>') + '</div>'];
     (IDB ? IDB.all("sets") : Promise.resolve([])).then(function (sets) {
       (sets || []).sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); }).forEach(function (s) {
-        var isA = s.displayName || s.name === active;
-        rows.push('<div class="ios-set' + (isA ? " active" : "") + '"><div><b>' + esc(s.name) + '</b><div class="ios-p">тем: ' + (s.topics || "?") + ' · ' + fmtTs(s.savedAt) + '</div></div>' +
+        // Правки для iOS (v5): исправлена ошибка приоритета операторов (любой набор с displayName считался активным); показываем понятное имя
+        var isA = s.name === active;
+        rows.push('<div class="ios-set' + (isA ? " active" : "") + '"><div><b>' + esc(s.displayName || s.name) + '</b><div class="ios-p">тем: ' + (s.topics || "?") + ' · ' + fmtTs(s.savedAt) + '</div></div>' +
           '<div class="ios-set-btns">' + (isA ? '<span class="ios-tag">активен</span>' : '<button class="ios-mini" data-ios="open" data-name="' + esc(s.name) + '">Открыть</button>') +
           '<button class="ios-mini ios-mini-del" data-ios="delete" data-name="' + esc(s.name) + '" aria-label="Удалить">🗑</button></div></div>');
       });
@@ -434,6 +443,8 @@ function rememberSet(name, text, count, displayName) {
       '<div class="ios-restore-card"><div style="font-size:46px">📂</div>' +
       '<h2>Восстановить прогресс?</h2>' +
       '<p>Сохранённого прогресса на этом устройстве (в этом браузере) не найдено. Если у вас есть копия <b>' + BACKUP_FILE + '</b> — выберите её, и статистика, XP, серии и достижения вернутся.</p>' +
+      // Правки для iOS (v5): в приложении с экрана «Домой» у iOS отдельное хранилище, не общее с Safari — объясняем, что импорт нужен один раз
+      (isStandalone() ? '<p class="ios-p">ℹ️ Приложение с экрана «Домой» хранит данные <b>отдельно от Safari</b>. Импортируйте копию один раз — дальше прогресс сохраняется автоматически после каждого ответа.</p>' : '') +
       '<button type="button" class="btn-primary" data-rs="pick">📥 Выбрать файл копии</button>' +
       '<button type="button" class="btn-secondary" data-rs="fresh">Начать заново</button>' +
       '<p class="ios-p" id="iosRestoreStatus"></p></div>';
@@ -509,9 +520,14 @@ function rememberSet(name, text, count, displayName) {
   function registerSW() {
     if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol) || S.isSingle) return;
     var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register("sw.js").then(function (reg) {
+    // Правки для iOS (v5): updateViaCache:"none" — sw.js всегда проверяется по сети (мимо HTTP-кэша GitHub Pages), и обновление
+    // проверяется при каждом возвращении в приложение (на iPhone PWA почти никогда не перезапускается «с нуля»)
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) {
       window.__swReg = reg;
-      if (reg.update) setInterval(function () { reg.update().catch(function () {}); }, 60 * 60 * 1000);
+      if (reg.update) {
+        setInterval(function () { reg.update().catch(function () {}); }, 60 * 60 * 1000);
+        document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") reg.update().catch(function () {}); });
+      }
     }).catch(function (e) { console.warn("[sw] register failed", e); });
     navigator.serviceWorker.addEventListener("controllerchange", function () {
       if (!hadController) { hadController = true; return; }

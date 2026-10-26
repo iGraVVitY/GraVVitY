@@ -468,7 +468,8 @@ function saveFavorites() {
 }
 function saveStats() {
   if (!state.fileKey) return;
-  try { localStorage.setItem("stats:" + state.fileKey, JSON.stringify(state.stats)); } catch (e) {}
+  // Правки для iOS: ошибка записи (переполнение памяти) больше не глотается молча — пишем в консоль, boot.js показывает предупреждение
+  try { localStorage.setItem("stats:" + state.fileKey, JSON.stringify(state.stats)); } catch (e) { console.warn("[stats] Не удалось сохранить статистику:", e); }
 }
 
 /* =========================================================
@@ -658,18 +659,23 @@ function getStat(item) {
 }
 function bumpStat(item, isCorrect) {
   const k = qKey(item);
-  const s = state.stats[k] || { ok: 0, err: 0, okStreak: 0 };
+  const s = state.stats[k] || { ok: 0, err: 0, okStreak: 0, totalErr: 0 };
+  
+  // Если totalErr еще нет (старые данные) — инициализируем
+  if (s.totalErr === undefined) s.totalErr = 0;
+  
   s.lastDate = Date.now();
   
   if (isCorrect) {
     s.ok++;
     s.okStreak = (s.okStreak || 0) + 1;
-    // Если серия из 3+ правильных ответов, сбрасываем активные ошибки
+    // Если серия из 3+ правильных, сбрасываем активные ошибки
     if (s.okStreak >= 3) {
       s.err = 0;
     }
   } else {
     s.err++;
+    s.totalErr++; // Увеличиваем счетчик ВСЕХ ошибок
     s.okStreak = 0; // При ошибке серия сбрасывается
   }
   
@@ -969,6 +975,31 @@ function migrateProgress(oldKey, newKey) {
 }
 
 
+// Правки для iOS: перенос старого прогресса (ключи *:questions.js / *:saved-set) на хэш-ключ набора, если он подходит к этому набору
+function iosMigrateLegacyProgress(topics, newKey, oldKey) {
+  ["questions.js", "saved-set"].forEach(legacy => {
+    if (legacy === oldKey || legacy === newKey) return; // этот случай уже обрабатывает migrateProgress ниже
+    const raw = localStorage.getItem("stats:" + legacy);
+    if (!raw) return;
+    try {
+      const mig = JSON.parse(localStorage.getItem("migration:" + legacy) || "null");
+      if (mig && mig.to === newKey) return; // уже переносили в этот набор
+    } catch (e) {}
+    let stats = {};
+    try { stats = JSON.parse(raw) || {}; } catch (e) { return; }
+    const keys = Object.keys(stats);
+    if (!keys.length) return;
+    const known = new Set();
+    topics.forEach(t => (t.questions || []).forEach(q => known.add(t.id + ":" + q.id)));
+    const hit = keys.filter(k => known.has(k)).length;
+    if (hit / keys.length < 0.5) return; // прогресс от другого набора — не трогаем
+    const res = migrateProgress(legacy, newKey);
+    if (res.migrated > 0 && window.GameApp && window.GameApp.toast) {
+      setTimeout(() => window.GameApp.toast("♻️ Перенесён прогресс из прошлой версии тренажёра", "ok", 4000), 900);
+    }
+  });
+}
+
 function loadTopics(topics, sourceLabel, fileKey) {
   if (!Array.isArray(topics) || topics.length === 0) {
     fileStatus.textContent = "Пустой файл — нет тем.";
@@ -981,6 +1012,11 @@ function loadTopics(topics, sourceLabel, fileKey) {
   // Хэш-ключ по названиям тем + миграция со старого ключа (если передан)
   const newKey = computeFileKey(topics);
   const oldKey = fileKey || sourceLabel || "default";
+
+  // Правки для iOS: прогресс из версии iOS 4.0 (и из встроенного questions.js) лежит под ключом «questions.js».
+  // На сайте questions.js нет, набор грузится с GitHub под своим именем — старый прогресс не подхватывался.
+  // Переносим его на хэш-ключ набора один раз и только если вопросы действительно совпадают (≥50% ключей статистики).
+  try { iosMigrateLegacyProgress(topics, newKey, oldKey); } catch (e) { console.warn("[migrate] legacy", e); }
 
   if (newKey !== oldKey) {
     const mig = migrateProgress(oldKey, newKey);
@@ -1428,26 +1464,51 @@ function render() {
       </div>
     </div>`;
   } else {
+
     // Обычный режим
-    html += `<div class="card-actions">`;
-    const isActiveError = stat.err > 0;
-    const errText = isActiveError ? `<span style="color:var(--err); font-weight:bold;">${stat.err}</span>` : "0";
-    html += `<span class="icon-btn stat" title="Верно / Активные ошибки" style="gap:4px;">${stat.ok}/${errText}</span>`;
-    html += `<button class="icon-btn ${isFav ? "active" : ""}" id="favBtn" title="В избранное">${isFav ? "★" : "☆"}</button>`;
+    html += `<div class="card-actions" style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:8px;">`;
+    
+    // ЛЕВАЯ ЧАСТЬ: Счетчик + Мусорка
+    html += `<div style="display:flex; gap:8px; align-items:center;">`;
+    
+    const isErrActive = stat.err > 0;
+    const totalErr = stat.totalErr || 0;
+    
+    // Стили для контейнера счетчика (подсветка, если есть активные ошибки)
+    const counterBg = isErrActive ? "var(--err-bg)" : "var(--bg)";
+    const counterBorder = isErrActive ? "var(--err)" : "var(--border)";
+    const counterColor = isErrActive ? "var(--err)" : "var(--text)";
+    
+    // Счетчик: ✅ Правильные / ❌ Всего ошибок
+    html += `<span class="icon-btn stat" 
+                   title="Правильных: ${stat.ok}. Всего ошибок: ${totalErr}. Активных (неисправленных): ${stat.err}" 
+                   style="background: ${counterBg} !important; border-color: ${counterBorder} !important; color: ${counterColor} !important; font-weight: bold; gap: 4px;">
+                ${stat.ok} <span style="opacity: 0.4;">/</span>  ${totalErr}
+             </span>`;
+    
+    // Мусорка (появляется, только если есть активные ошибки)
     if (stat.err > 0) {
-      html += `<button class="icon-btn danger" id="clearErrBtn" title="Убрать из ошибок">🗑</button>`;
+      html += `<button class="icon-btn stat" id="clearErrBtn" title="Убрать из ошибок" style="color:var(--err); border-color:var(--err);">🗑</button>`;
     }
+    
     html += `</div>`;
     
+    // ПРАВАЯ ЧАСТЬ: Избранное
+    html += `<div style="display:flex; align-items:center; margin-left:auto;">`;
+    html += `<button class="icon-btn ${isFav ? "active" : ""}" id="favBtn" title="В избранное">${isFav ? "★" : "☆"}</button>`;
+    html += `</div>`;
+    
+    html += `</div>`;
+    
+    // Строка с номером вопроса
     html += isTraining()
-
-  ? `<div class="q-num" style="display: flex; justify-content: space-between; align-items: center;">
-       <span>Вопрос ${item.id}</span>
-       <span>${state.current + 1} из ${total}</span>
-     </div>`
-  : `<div class="q-num" style="display: flex; justify-content: space-between; align-items: center;">
-       <span>Вопрос ${state.current + 1} из ${total}</span>
-     </div>`;
+      ? `<div class="q-num" style="display: flex; justify-content: space-between; align-items: center;">
+           <span>Вопрос ${item.id}</span>
+           <span>${state.current + 1} из ${total}</span>
+         </div>`
+      : `<div class="q-num" style="display: flex; justify-content: space-between; align-items: center;">
+           <span>Вопрос ${state.current + 1} из ${total}</span>
+         </div>`;
   }
 
   // === ТЕКСТ ВОПРОСА ===
@@ -1680,6 +1741,8 @@ function onAnswer(e) {
   render();
 
   try { saveSession(); } catch (e) {} // Правки для iOS: сессия сохраняется сразу после каждого ответа (раньше — только при закрытии, которого на iOS «не бывает»)
+  // Правки для iOS: и сразу же — копия в IndexedDB (без задержки): если приложение смахнуть из переключателя, ответ не потеряется
+  try { if (window.IOSStore && window.IOSStore.backupSoon) window.IOSStore.backupSoon(); } catch (e) {}
   
   // ▼▼▼ ДОБАВЛЯЕМ ОБНОВЛЕНИЕ XP ▼▼▼
   if (typeof syncGamificationUI === 'function') {
@@ -1851,6 +1914,8 @@ function renderFinal() {
     const chosenOrig = state.optionOrders[item.id][chosen];
     if (chosenOrig === (item.correct - 1)) correctCount++;
   });
+    state._sessionTimeSec = state._sessionStartTime ? Math.floor((Date.now() - state._sessionStartTime) / 1000) : 0;
+  updateRecordsOnSessionEnd();
   
   const pct = answeredCount ? Math.round(correctCount / total * 100) : 0;
   
@@ -2744,6 +2809,8 @@ fileInput.addEventListener("change", (e) => {
       window.__CURRENT_QUESTIONS_TEXT = __text;
 
       loadTopics(topics, file.name, file.name);
+      // Правки для iOS: запоминаем и как «последний открытый набор» — иначе при следующем запуске открывался старый набор из ios:savedSetText и прогресс «пропадал»
+      saveCurrentSetToStorage(__text);
       if (typeof window.iosRememberSet === "function") window.iosRememberSet(file.name, __text, topics);
     } catch (err) {
       fileStatus.textContent = "Ошибка: " + err.message;
@@ -3015,70 +3082,64 @@ document.getElementById("bossDayBtn")?.addEventListener("click", () => {
   // Правки для iOS: сначала загружаем набор вопросов, сохранённый на устройстве (IndexedDB), и только потом встроенный questions.js
   let __bootLoaded = false;
   
-  // ПРИОРИТЕТ 1: Наш сохраненный набор (из localStorage)
+  // Правки для iOS: порядок загрузки набора при старте переписан:
+  //  1) последний открытый набор из localStorage (ios:savedSetText, при необходимости расшифровывается);
+  //  2) если его нет / не расшифровался / не разобрался — копия набора из IndexedDB (__BOOT_SET);
+  //  3) встроенный questions.js (на сайте его нет — тогда пустой экран с подсказкой загрузить набор).
+  //  Раньше при неудачной расшифровке набор УДАЛЯЛСЯ, а запасные варианты не запускались (стоял return) —
+  //  приложение открывалось пустым и выглядело так, будто прогресс пропал.
   const savedText = localStorage.getItem("ios:savedSetText");
   const savedPassword = localStorage.getItem("ios:savedSetPassword");
-  
-  if (savedText) {
-    try {
-      if (savedPassword) {
-        // Если есть пароль — значит, текст зашифрован. Расшифровываем асинхронно.
-        decryptText(savedText, savedPassword).then(decryptedText => {
-          try {
-            const __t = parseTopicsFromText(decryptedText);
-            if (Array.isArray(__t) && __t.length) {
-              window.__CURRENT_QUESTIONS_TEXT = decryptedText;
-              loadTopics(__t, "Восстановлен (расшифрован)", "saved-set");
-              __bootLoaded = true;
-            }
-          } catch (e) {
-            console.warn("[init] Сохраненный расшифрованный набор не разобран", e);
-            localStorage.removeItem("ios:savedSetText");
-            localStorage.removeItem("ios:savedSetPassword");
-          }
-        }).catch(err => {
-          console.warn("[init] Не удалось расшифровать сохраненный набор", err);
-          // Если пароль не подошел (например, другой файл), очищаем
-          localStorage.removeItem("ios:savedSetText");
-          localStorage.removeItem("ios:savedSetPassword");
-          // После этого запустится фолбэк ниже
-        });
-        // Так как decryptText асинхронный, мы возвращаемся, а загрузка пойдет по цепочке в then()
-        return; 
-      } else {
-        // Обычный (незашифрованный) текст
-        const __t = parseTopicsFromText(savedText);
+
+  const __fallbackBoot = () => {
+    // ПРИОРИТЕТ 2: копия набора в IndexedDB (__BOOT_SET)
+    if (window.__BOOT_SET && window.__BOOT_SET.text) {
+      try {
+        const __t = parseTopicsFromText(window.__BOOT_SET.text);
         if (Array.isArray(__t) && __t.length) {
-          window.__CURRENT_QUESTIONS_TEXT = savedText;
-          loadTopics(__t, "Восстановлен", "saved-set");
-          __bootLoaded = true;
+          window.__CURRENT_QUESTIONS_TEXT = window.__BOOT_SET.text;
+          loadTopics(__t, (window.__BOOT_SET.displayName || window.__BOOT_SET.name) + " (сохранён на устройстве)", window.__BOOT_SET.name);
+          return;
         }
-      }
-    } catch (e) {
-      console.warn("[init] Сохраненный набор не разобран", e);
-      localStorage.removeItem("ios:savedSetText");
-      localStorage.removeItem("ios:savedSetPassword");
+      } catch (e) { console.warn("[ios] сохранённый набор не разобран", e); }
     }
-  }
+    // ПРИОРИТЕТ 3: Встроенный questions.js
+    if (typeof TOPICS !== "undefined" && Array.isArray(TOPICS) && TOPICS.length > 0) {
+      const qScript = document.getElementById('src-questions') || Array.from(document.scripts).find(s => s.src.includes('questions.js'));
+      window.__CURRENT_QUESTIONS_TEXT = qScript ? (qScript.textContent || "") : "";
+      loadTopics(TOPICS, "questions.js (автозагрузка)", "questions.js");
+    } else {
+      render();
+    }
+  };
 
-  // ПРИОРИТЕТ 2: Если из localStorage ничего не загрузилось, проверяем старый IndexedDB (__BOOT_SET)
-  if (!__bootLoaded && window.__BOOT_SET && window.__BOOT_SET.text) {
+  const __loadSavedText = (text, label) => {
+    const __t = parseTopicsFromText(text);
+    if (!Array.isArray(__t) || !__t.length) throw new Error("пустой набор");
+    window.__CURRENT_QUESTIONS_TEXT = text;
+    loadTopics(__t, label, "saved-set");
+    // Правки для iOS: один раз дублируем набор в IndexedDB (запасная копия, если iOS очистит localStorage) — для наборов, загруженных до этой версии
     try {
-      const __t = parseTopicsFromText(window.__BOOT_SET.text);
-      if (Array.isArray(__t) && __t.length) { 
-        loadTopics(__t, window.__BOOT_SET.name + " (сохранён на устройстве)", window.__BOOT_SET.name); 
-        __bootLoaded = true; 
+      if (typeof window.iosRememberSet === "function" && localStorage.getItem("ios:activeSet") !== computeFileKey(__t)) {
+        window.iosRememberSet("Последний открытый набор", text, __t);
       }
-    } catch (e) { console.warn("[ios] сохранённый набор не разобран", e); }
-  }
+    } catch (e) {}
+  };
 
-  // ПРИОРИТЕТ 3: Встроенный questions.js
-  if (!__bootLoaded && typeof TOPICS !== "undefined" && Array.isArray(TOPICS) && TOPICS.length > 0) {
-    const qScript = document.getElementById('src-questions') || Array.from(document.scripts).find(s => s.src.includes('questions.js'));
-    window.__CURRENT_QUESTIONS_TEXT = qScript ? (qScript.textContent || "") : "";
-    loadTopics(TOPICS, "questions.js (автозагрузка)", "questions.js");
-  } else if (!__bootLoaded) {
-    render();
+  if (savedText && savedPassword) {
+    // Зашифрованный набор: расшифровываем асинхронно
+    decryptText(savedText, savedPassword)
+      .then(decryptedText => { __loadSavedText(decryptedText, "Восстановлен (расшифрован)"); })
+      .catch(err => {
+        // Правки для iOS: набор и пароль НЕ удаляем (ошибка может быть временной) — просто берём запасной вариант
+        console.warn("[init] Не удалось открыть сохранённый зашифрованный набор", err);
+        __fallbackBoot();
+      });
+  } else if (savedText) {
+    try { __loadSavedText(savedText, "Восстановлен"); }
+    catch (e) { console.warn("[init] Сохраненный набор не разобран", e); __fallbackBoot(); }
+  } else {
+    __fallbackBoot();
   }
 })();
 
@@ -3090,6 +3151,8 @@ function __saveOnLeave() {
     saveSession();
   }
   try { if (activityStats.isActive) saveActiveTime(); } catch (e) {}
+  // Правки для iOS: сразу же пишем копию в IndexedDB (обработчик в boot.js срабатывает раньше этого и не видел свежую сессию)
+  try { if (window.IOSStore && window.IOSStore.backupNow) window.IOSStore.backupNow(); } catch (e) {}
 }
 window.addEventListener("beforeunload", __saveOnLeave);
 // iOS Safari / PWA: beforeunload не срабатывает — сохраняемся при сворачивании и закрытии
@@ -5231,6 +5294,8 @@ function openMobileSettings() {
         
         // СОХРАНЯЕМ в localStorage (и зашифрованный текст, и пароль)
         saveCurrentSetToStorage(encryptedText, password);
+        // Правки для iOS: запасная копия набора в IndexedDB (если iOS очистит localStorage, набор откроется сам)
+        if (typeof window.iosRememberSet === "function") window.iosRememberSet(file.name, decryptedText, topics);
         
         encStatus.textContent = `✅ Успешно (${topics.length} тем).`; encStatus.style.color = "var(--ok)";
         setTimeout(() => { start(); closeMobileSettings(); }, 500);
@@ -5275,6 +5340,8 @@ function openMobileSettings() {
             
             // СОХРАНЯЕМ в localStorage (и зашифрованный текст, и пароль)
             saveCurrentSetToStorage(encryptedText, password);
+            // Правки для iOS: запасная копия набора в IndexedDB (если iOS очистит localStorage, набор откроется сам)
+            if (typeof window.iosRememberSet === "function") window.iosRememberSet(fileName, decryptedText, topics);
             
             statusEl.textContent = `✅ Расшифровано (${topics.length} тем).`; statusEl.style.color = "var(--ok)";
             setTimeout(() => { start(); closeMobileSettings(); }, 500);
@@ -5773,5 +5840,7 @@ function saveCurrentSetToStorage(rawText, password = null) {
     }
   } catch (e) {
     console.warn("Не удалось сохранить набор в localStorage", e);
+    // Правки для iOS: если набор не влез в localStorage — старый набор убираем, чтобы при запуске не открылся он вместо текущего (текущий откроется из IndexedDB)
+    try { localStorage.removeItem("ios:savedSetText"); localStorage.removeItem("ios:savedSetPassword"); } catch (x) {}
   }
 }
