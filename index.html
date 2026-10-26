@@ -429,6 +429,20 @@ setTimeout(function(){
       </div>
     </div>
 
+    <!-- Карточка 13: Паттерны ответов -->
+    <div class="card" style="padding:20px; grid-column: 1 / -1;">
+      <h3 style="margin-top:0; margin-bottom:4px; color:var(--muted); font-size:14px; text-transform:uppercase;">Паттерны ответов</h3>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:20px; line-height: 1.4;">
+        Проверка гипотезы, что составители тестов оставляют подсказки. 
+        <br>• <b>Самый длинный</b> — как часто правильный ответ визуально длиннее остальных.
+        <br>• <b>«Несколько»</b> — как часто правильный ответ содержит слова-маркеры (все, оба, 1 и 4 и т.д.).
+        <br>• <b>Отрицание</b> — как часто правильный ответ содержит отрицание (кроме, прочее).
+      </p>
+      <div style="position:relative; width:100%; height:300px;">
+        <canvas id="chartPatterns"></canvas>
+      </div>
+    </div>
+
 
     <!-- Карточка 11: Кривая забывания -->
     <div class="card" style="padding:20px; grid-column: 1 / -1;">

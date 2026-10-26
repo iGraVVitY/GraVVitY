@@ -3448,6 +3448,102 @@ function buildStatistics() {
     }
   });
 
+    // --- 13. Анализ паттернов ответов ---
+  let longestCorrect = 0;
+  let allOfTheAboveCorrect = 0;
+  let exceptionCorrect = 0;
+  
+  // Маркеры для поиска "Все вышеперечисленное"
+  const allMarkers = ["все", "верны", "верно", "1", "2", "3", "4", "5", "ответы"];
+  
+  // Маркеры для "Исключения"
+  const exceptionMarkers = ["кроме", "за исключением", "не является", "не относится", "неверно", "неправильно", "варианта", "прочее", "ответа"];
+
+  const questionsWithOptions = allQuestions.filter(q => q.options && q.options.length >= 2);
+  const totalCount = questionsWithOptions.length;
+
+  questionsWithOptions.forEach(q => {
+    const correctOpt = q.options[q.correct - 1];
+    if (!correctOpt) return;
+    
+    // 1. Проверка на "самый длинный"
+    const otherLengths = q.options.filter((_, i) => i !== (q.correct - 1)).map(o => o.length);
+    const avgOtherLength = otherLengths.reduce((a, b) => a + b, 0) / otherLengths.length;
+    
+    if (correctOpt.length > avgOtherLength * 1.5 && correctOpt.length > 15) {
+      longestCorrect++;
+    }
+    
+    // 2. Проверка на "Всё вышеперечисленное"
+    const lowerCorrect = correctOpt.toLowerCase();
+    if (allMarkers.some(m => lowerCorrect.includes(m))) {
+      allOfTheAboveCorrect++;
+    }
+
+    // 3. Проверка на "Исключение"
+    if (exceptionMarkers.some(m => lowerCorrect.includes(m))) {
+      exceptionCorrect++;
+    }
+  });
+
+  const pct1 = totalCount > 0 ? Math.round((longestCorrect / totalCount) * 100) : 0;
+  const pct2 = totalCount > 0 ? Math.round((allOfTheAboveCorrect / totalCount) * 100) : 0;
+  const pct3 = totalCount > 0 ? Math.round((exceptionCorrect / totalCount) * 100) : 0;
+
+     if (window.chartPatternsInstance) window.chartPatternsInstance.destroy();
+  window.chartPatternsInstance = new Chart($("#chartPatterns"), {
+    type: 'bar',
+    data: {
+      labels: [
+        `Самый длинный (${pct1}%)`,
+        `Несколько (${pct2}%)`,
+        `Отрицание (${pct3}%)`,
+        'Всего вопросов' // <-- Перенесли в самый конец
+      ],
+      datasets: [{
+        label: 'Количество вопросов',
+        data: [longestCorrect, allOfTheAboveCorrect, exceptionCorrect, totalCount], // <-- totalCount теперь последний
+        backgroundColor: [
+          '#4a9eff', // Самый длинный
+          '#b7791f', // Все
+          '#38b2ac', // Отрицание
+          isDark ? 'rgba(17, 233, 158, 0.9)' : 'rgba(7, 251, 125, 0.1)' // Всего (серый)
+        ],
+        borderRadius: 6,
+        barPercentage: 0.7
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.raw;
+              if (context.dataIndex === 3) return `Всего: ${val} вопросов`; // Проверяем по индексу 3
+              
+              const pct = totalCount > 0 ? Math.round((val / totalCount) * 100) : 0;
+              return `Совпадений: ${val} (${pct}%)`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { color: tickColor, stepSize: Math.ceil(totalCount / 10) },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: { color: tickColor, font: { size: 12 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
   renderHeatmap();
 }
 function renderHeatmap() {
