@@ -595,21 +595,21 @@ body.dark-theme .opt {
    ========================================================= */
 
 /* --- Ключевые кадры --- */
-@keyframes bossAuraPulse {
-  0%   { box-shadow: 0 0 10px 2px var(--boss-color, var(--err)), inset 0 0 15px rgba(255,255,255,0.05); }
-  50%  { box-shadow: 0 0 25px 8px var(--boss-color, var(--err)), inset 0 0 40px rgba(255,255,255,0.15); }
-  100% { box-shadow: 0 0 10px 2px var(--boss-color, var(--err)), inset 0 0 15px rgba(255,255,255,0.05); }
+@keyframes bossPulse {
+  0%, 100% { opacity: 0.40; }
+  50%      { opacity: 1.00; }
 }
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25%      { transform: translateX(-6px); }
   75%      { transform: translateX(6px); }
 }
 @keyframes animBreath {
-  0%   { filter: drop-shadow(0 0 10px var(--boss-color)); }
-  50%  { filter: drop-shadow(0 0 35px var(--boss-color)); }
-  100% { filter: drop-shadow(0 0 10px var(--boss-color)); }
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.90; transform: scale(1.015); }
 }
+
 @keyframes animVampire {
   0%   { box-shadow: inset 0 0 10px 2px var(--boss-color); border-color: var(--boss-color); }
   50%  { box-shadow: inset 0 0 30px 5px var(--boss-color), inset 0 0 20px #fff; border-color: #fff; }
@@ -656,19 +656,44 @@ body.dark-theme .opt {
   background: var(--card) !important;
   padding: 24px 20px !important;
   position: relative;
-  animation: animBreath 2.5s infinite ease-in-out;
-  transition: all 0.3s ease;
+  box-shadow: 0 0 15px 2px var(--boss-color);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+.card.boss-arena::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 30px 8px var(--boss-color);
+  opacity: 0.35;
+  animation: animBreath 2.5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
 .card.boss-arena.answered-correct {
-  animation: bossAuraPulse 0.5s infinite ease-in-out, shake 0.4s ease-in-out !important;
   border-color: var(--ok) !important;
+  animation: shake 0.4s ease-in-out;
 }
+.card.boss-arena.answered-correct::before {
+  --boss-color: var(--ok);
+  animation: bossPulse 0.5s ease-in-out infinite;
+}
+
 .card.boss-arena.answered-wrong {
   border-color: var(--err) !important;
-  animation: bossAuraPulse 0.5s infinite ease-in-out, shake 0.4s ease-in-out !important;
+  animation: shake 0.4s ease-in-out;
 }
+.card.boss-arena.answered-wrong::before {
+  --boss-color: var(--err);
+  animation: bossPulse 0.5s ease-in-out infinite;
+}
+
 .card.boss-arena .q-text { text-shadow: 0 0 10px var(--boss-color); }
-.card.boss-arena.anim-vampire   { animation: animBreath 2s infinite ease-in-out, animVampire 2s infinite ease-in-out !important; }
+.card.boss-arena.anim-vampire {
+  animation: animVampire 2s infinite ease-in-out;
+}
 .card.boss-arena.anim-explosion { animation: animExplosion 1.5s forwards cubic-bezier(0.25, 1, 0.5, 1) !important; pointer-events: none; }
 
 /* --- Шапка босса внутри карточки --- */
@@ -965,24 +990,24 @@ body.dark-theme .opt {
 
 /* Блик, бегущий по золотой карточке */
 @keyframes shineEffect {
-  0%   { left: -100%; }
-  20%  { left: 200%; }
-  100% { left: 200%; }
+  0%   { transform: translateX(-200%) skewX(-25deg); }
+  20%  { transform: translateX(400%)  skewX(-25deg); }
+  100% { transform: translateX(400%)  skewX(-25deg); }
 }
 .map-boss-defeated::after {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 50%;
   height: 100%;
   background: linear-gradient(to right,
     rgba(255,255,255,0) 0%,
     rgba(255,215,0,0.2) 50%,
     rgba(255,255,255,0) 100%);
-  transform: skewX(-25deg);
   animation: shineEffect 5s infinite;
   pointer-events: none;
+  will-change: transform;
 }
 
 /* =========================================================
@@ -1821,11 +1846,28 @@ input[type="file"]::file-selector-button {
 
 /* Число/значение — прижато вправо, не сжимается */
 .record-item > b {
-  flex: 0 0 auto;
-  white-space: nowrap;       /* «12 / 15 (80%) · 340 очков» не рвётся */
+  flex: 0 1 auto;
+  white-space: normal;
+  word-break: break-word;
   text-align: right;
   font-weight: 800;
   color: var(--accent);
+  max-width: 55%;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+/* Для самых длинных значений (сессия, скорость) — вертикальная раскладка */
+.record-item.record-item-long {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+}
+.record-item.record-item-long > span { flex: 1 1 100%; }
+.record-item.record-item-long > b {
+  flex: 1 1 100%;
+  max-width: 100%;
+  text-align: left;
 }
 
 /* =========================================================
@@ -2494,4 +2536,43 @@ body.dark-theme #closeBossResultBtn:hover {
 .preset-btn.icon-only.active {
   background: var(--card);
   border-color: var(--accent);
+}
+
+/* Футер модалки «Вопросы для повторения» */
+.review-list-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.review-list-footer .btn-primary,
+.review-list-footer .btn-secondary {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+@media (min-width: 600px) {
+  .review-list-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+  .review-list-footer .btn-primary,
+  .review-list-footer .btn-secondary {
+    width: auto;
+    min-width: 200px;
+  }
+}
+
+/* Правки (v6): в мобильном «Топе ошибок» теперь три значения в строке — даём перенос */
+.top-card-stats {
+  text-align: right;
+  line-height: 1.4;
+  max-width: 60%;
+  word-break: break-word;
+}
+.top-card-header {
+  flex-wrap: wrap;
+  gap: 4px;
 }

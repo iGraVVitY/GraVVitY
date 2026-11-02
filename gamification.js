@@ -15,13 +15,30 @@
   const MILESTONES = [7, 14, 30, 100, 365];
 
   // Шкала уровней
-  const LEVELS = [
-    { lvl: 1, name: "Новичок", xp: 0 }, { lvl: 2, name: "Стажер", xp: 100 },
-    { lvl: 3, name: "Ученик", xp: 250 }, { lvl: 4, name: "Практик", xp: 500 },
-    { lvl: 5, name: "Специалист", xp: 850 }, { lvl: 6, name: "Профи", xp: 1300 },
-    { lvl: 7, name: "Эксперт", xp: 1900 }, { lvl: 8, name: "Гуру", xp: 2700 },
-    { lvl: 9, name: "Мастер", xp: 3700 }, { lvl: 10, name: "Легенда", xp: 5000 }
-  ];
+// Правки (v6): 20 уровней вместо 10. Первые 10 — как раньше (плавный вход),
+// дальше — экспоненциальный рост, чтобы «Абсолют» оставался долгосрочной целью (~5–6 месяцев активной игры).
+const LEVELS = [
+  { lvl: 1,  name: "Новичок",       xp: 0 },
+  { lvl: 2,  name: "Стажер",        xp: 100 },
+  { lvl: 3,  name: "Ученик",        xp: 250 },
+  { lvl: 4,  name: "Практик",       xp: 500 },
+  { lvl: 5,  name: "Специалист",    xp: 850 },
+  { lvl: 6,  name: "Профи",         xp: 1300 },
+  { lvl: 7,  name: "Эксперт",       xp: 1900 },
+  { lvl: 8,  name: "Гуру",          xp: 2700 },
+  { lvl: 9,  name: "Мастер",        xp: 3700 },
+  { lvl: 10, name: "Легенда",       xp: 5000 },
+  { lvl: 11, name: "Ветеран",       xp: 6600 },
+  { lvl: 12, name: "Архитектор",    xp: 8600 },
+  { lvl: 13, name: "Оракул",        xp: 11000 },
+  { lvl: 14, name: "Титан",         xp: 13800 },
+  { lvl: 15, name: "Полубог",       xp: 17100 },
+  { lvl: 16, name: "Хранитель",     xp: 20900 },
+  { lvl: 17, name: "Архонт",        xp: 25300 },
+  { lvl: 18, name: "Мифик",         xp: 30300 },
+  { lvl: 19, name: "Сингулярность", xp: 36000 },
+  { lvl: 20, name: "Абсолют",       xp: 42400 }
+];
 
   // Список всех достижений (привязаны к файлу)
   const BADGES = [
@@ -682,6 +699,10 @@ const mins = (window.TestApp && window.TestApp.getTodayActiveMinutes) ? window.T
     onAnswer, toast, addXp, unlockBadge,
     get state() { return state; },
     getThreshold,
+        getLevelName: function(lvl) {
+      const found = LEVELS.find(l => l.lvl === lvl);
+      return found ? found.name : "Новичок";
+    },
     getSessionXp: () => state.sessionXp,
     resetSessionXp: () => { state.sessionXp = 0; },
     _refreshBadge: () => { renderBadge(); renderXpBadge(); },
@@ -754,7 +775,7 @@ const mins = (window.TestApp && window.TestApp.getTodayActiveMinutes) ? window.T
     if (closeQuestsBtn) closeQuestsBtn.addEventListener("click", () => { document.getElementById("questsModal").style.display = "none"; });
 
     renderBadge(); renderXpBadge(); renderQuestCard(); renderBadgeCount(); renderQuestsCount();
-    setInterval(tickTimeGoal, 30000);
+    setInterval(tickTimeGoal, 60000);
     setTimeout(checkBadges, 2000);
   }
 

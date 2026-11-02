@@ -1292,7 +1292,7 @@ setInterval(() => {
     saveActiveTime();
     activityStats.lastTick = Date.now();
   }
-}, 5000);
+}, 30000);
 
 // Слушаем уход/возврат на вкладку
 document.addEventListener("visibilitychange", checkActivity);
@@ -1781,19 +1781,6 @@ function goPrev() {
   }
 }
 
-function goNext() {
-  clearAutoAdvance();
-  if (state.current < state.order.length - 1) {
-    state.current++;
-    saveSession();
-    render();
-  } else {
-    state.finished = true;
-    saveSession();
-    render();
-  }
-}
-
 
 function goNext() {
   clearAutoAdvance();
@@ -1814,13 +1801,13 @@ function goNext() {
 
 
 function renderBossFinal() {
-
- // Сбрасываем темную тему (бой завершен)
   document.body.classList.remove('dark-theme');
-
-  // СБРОС МОДАЛКИ БОССА ПЕРЕД ПОКАЗОМ
   const bossFightModal = document.getElementById("bossFightModal");
   if (bossFightModal) bossFightModal.classList.remove("active");
+
+  // Правки: запоминаем, что это был бой с боссом (для вызова разбора после закрытия результата)
+  state._lastWasBoss = true;
+  state._lastBossType = state._bossFight ? state._bossFight.type : null;
 
   const total = state.order.length;
   let correctCount = 0;
@@ -1831,6 +1818,10 @@ function renderBossFinal() {
     const chosenOrig = state.optionOrders[item.id][chosen];
     if (chosenOrig === (item.correct - 1)) correctCount++;
   });
+  
+  state._sessionTimeSec = state._sessionStartTime ? Math.floor((Date.now() - state._sessionStartTime) / 1000) : 0;
+  updateRecordsOnSessionEnd();
+
   
   const pct = total > 0 ? Math.round(correctCount / total * 100) : 0;
   const currentBoss = state._bossFight; // Сохраняем ссылку!
@@ -2165,10 +2156,17 @@ function renderTop() {
       if (b.ratio !== a.ratio) return b.ratio - a.ratio;
       return b.err - a.err;
     });
+  } else if (sortMode === "total") {
+    // Правки (v6): по общим ошибкам за всё время
+    filtered.sort((a, b) => {
+      if (b.totalErr !== a.totalErr) return b.totalErr - a.totalErr;
+      return b.err - a.err;
+    });
   } else {
+    // По умолчанию — по активным ошибкам
     filtered.sort((a, b) => {
       if (b.err !== a.err) return b.err - a.err;
-      return b.ratio - a.ratio;
+      return b.totalErr - a.totalErr;
     });
   }
 
@@ -2183,7 +2181,8 @@ function renderTop() {
     <option value="5">5 и более</option>
   </select></label>`;
   html += `<label>Сортировка: <select id="topSort">
-    <option value="count">По числу ошибок</option>
+    <option value="count">По активным ошибкам</option>
+    <option value="total">По общим ошибкам</option>
     <option value="ratio">По доле ошибок</option>
   </select></label>`;
   html += `<button class="ghost" id="topBackBtn" style="margin-left:auto;">← Вернуться к тесту</button>`;
@@ -2225,7 +2224,7 @@ function renderTop() {
       html += `<div class="ti-topic">${escapeHtml(item._topicTitle || "")}</div>`;
       html += `</div>`;
       html += `<div class="ti-stats">`;
-      html += `Ошибок: <b class="err">${row.err}</b> · Верно: <b class="ok">${row.ok}</b> · Доля: ${pct}%`;
+      html += `Активных: <b class="err">${row.err}</b> · Всего: <b class="err">${row.totalErr}</b> · Верно: <b class="ok">${row.ok}</b> · Доля: ${pct}%`;
       html += `</div>`;
       html += `<div class="ti-actions">`;
       if (inCurrent) {
@@ -2781,6 +2780,8 @@ function start() {
   state._explosionTimer = null;
   state._resumePending = false;
   state._bossFight = null;
+  state._lastWasBoss = false; // Правки: сбрасываем флаг боя
+  state._lastBossType = null;
   clearAutoAdvance();
   buildOrders();
   updateSpecialCounts();
@@ -3009,7 +3010,29 @@ searchInput.addEventListener("focus", (e) => {
 document.addEventListener("click", (e) => {
   if (e.target.id === "closeBossResultBtn") {
     document.getElementById("bossResultModal").style.display = "none";
-    closeTestModal(); // Закрываем тест и возвращаемся на главный экран
+    closeTestModal(); 
+    
+    // Правки: после боя с боссом открываем разбор ответов
+    if (state._lastWasBoss) {
+      const bossType = state._lastBossType;
+      state._lastWasBoss = false;
+      state._lastBossType = null;
+      
+      // Для ультра-босса (вся база) открываем только ошибки — иначе разбор зависнет
+      if (bossType === "ultra") {
+        window.reviewFilter = "errors";
+      } else {
+        window.reviewFilter = "all";
+      }
+      
+      // Небольшая задержка, чтобы closeTestModal успел убрать оверлеи
+      setTimeout(() => {
+        if (typeof renderReview === "function") {
+          renderReview();
+          // Если для ультра-босса ошибок нет — renderReview покажет "Отлично! В этом тесте нет ошибок"
+        }
+      }, 150);
+    }
   }
 });
 searchInput.addEventListener("keydown", (e) => {
@@ -3268,9 +3291,23 @@ function buildStatistics() {
   });
 
   // --- 3. Топ-5 сложных ---
-  const sortedByErr = [...allQuestions].map(q => ({ q, err: getStat(q).err })).filter(x => x.err > 0).sort((a, b) => b.err - a.err).slice(0, 5);
+  // Правки (v6): используем totalErr — «где чаще всего ошибался за всё время»,
+  // а не «где прямо сейчас красная метка». Так в топ попадут и те,
+  // что сейчас «зелёные», но исторически проблемные.
+  const sortedByErr = [...allQuestions]
+    .map(q => {
+      const s = getStat(q);
+      return { q, err: s.err, totalErr: s.totalErr || 0 };
+    })
+    .filter(x => x.totalErr > 0)
+    .sort((a, b) => {
+      if (b.totalErr !== a.totalErr) return b.totalErr - a.totalErr;
+      return b.err - a.err;
+    })
+    .slice(0, 5);
+
   const hardLabels = sortedByErr.map(x => `${x.q.id} (${x.q._topicTitle.split('.')[0]})`);
-  const hardData = sortedByErr.map(x => x.err);
+  const hardData = sortedByErr.map(x => x.totalErr);
 
   if (chartHardInstance) chartHardInstance.destroy();
   chartHardInstance = new Chart($("#chartHard"), {
@@ -3678,7 +3715,7 @@ function showQuestionsForCategory(categoryName) {
     });
     content.innerHTML = html;
     
-    startBtn.style.display = "block";
+    startBtn.style.display = "";  // возвращаем к дефолту класса .btn-primary
     startBtn.onclick = () => {
       overlay.style.display = "none";
       statsOverlay.style.display = "none";
@@ -3707,11 +3744,15 @@ function showQuestionsForCategory(categoryName) {
       CONFIG.mode = "training";
       $("#modeSelect").value = "training";
 
-      // ▼▼▼ ВАЖНО: Вызываем мобильную модалку ▼▼▼
+      // Фиксируем время старта
+      state._sessionStartTime = Date.now();
+
+      // 1. Отрисовываем кастомный набор вопросов
+      render();
+
+      // 2. Открываем модалку теста, пропуская пересборку
       if (typeof launchMobileTest === 'function') {
-        launchMobileTest();
-      } else {
-        render(); // Фолбэк
+        launchMobileTest(true);
       }
     };
   } // ЗАКРЫВАЕМ else
@@ -4021,14 +4062,24 @@ function updateRecordsOnSessionEnd() {
     if (chosenOrig === (item.correct - 1)) correct++;
   });
 
+  // Правки (v6): проверка достижений, требующих завершённой сессии
+  // «Безупречный» — все ответы верны, вопросов ≥ 10
+  // «Ты же пошутил?» — все ответы неверны, вопросов ≥ 10
+  if (window.GameApp && window.GameApp.unlockBadge) {
+    const answered = Object.keys(state.answers).length;
+    if (answered >= 10 && correct === answered && answered === total) {
+      window.GameApp.unlockBadge("perfect");
+    }
+    if (answered >= 10 && correct === 0 && answered === total) {
+      window.GameApp.unlockBadge("are_you_kidding");
+    }
+  }
+
   const timeSec = state._sessionTimeSec || 0;
   
-  console.log("[records] Сессия:", { correct, total, time: timeSec });
-
-  // 1. Лучшая сессия по очкам
+  // 1. Лучшая сессия по очкам (объём × точность)
   if (total > 0) {
-    const score = Math.round(correct * (total / 10));
-    console.log("[records] Очки за сессию:", score, "(было:", records.bestSessionScore || 0, ")");
+    const score = Math.round(correct * (correct / total) * 10);
     
     if (score > (records.bestSessionScore || 0)) {
       records.bestSessionScore = score;
@@ -4037,14 +4088,13 @@ function updateRecordsOnSessionEnd() {
     }
   }
 
-  // 2. Быстрейшая сессия
+  // 2. Быстрейшая сессия (правильных ответов в минуту × 10)
   if (total > 0 && timeSec > 0) {
-    const speedScore = Math.round((total / timeSec) * 100);
-    console.log("[records] Скорость:", speedScore, "(было:", records.bestSpeedScore || 0, ")");
+    const speedScore = Math.round((correct / Math.max(timeSec, 1)) * 60 * 10);
     
     if (speedScore > (records.bestSpeedScore || 0)) {
       records.bestSpeedScore = speedScore;
-      records.bestSpeedInfo = { total, seconds: timeSec };
+      records.bestSpeedInfo = { total, seconds: timeSec, correct };
       changed = true;
     }
   }
@@ -4070,14 +4120,14 @@ function openRecordsModal() {
 
   let html = "";
   
-  html += `<div class="record-item"><span>🔥 Лучшая серия правильных ответов</span> <b>${records.bestCorrectStreak}</b></div>`;
+  html += `<div class="record-item"><span>🔥 Серия правильных ответов</span> <b>${records.bestCorrectStreak}</b></div>`;
   html += `<div class="record-item"><span>📅 Лучший день по вопросам</span> <b>${records.bestDayCount}</b></div>`;
   html += `<div class="record-item"><span>🛡️ Самая длинная серия дней</span> <b>${records.bestStreak}</b></div>`;
   html += `<div class="record-item"><span>🧹 Больше всего ошибок закрыто за день</span> <b>${records.bestErrorsClosed}</b></div>`;
   
   if (records.bestSessionInfo) {
     const info = records.bestSessionInfo;
-    html += `<div class="record-item"><span>🏆 Лучшая сессия</span> <b>${info.correct} / ${info.total} (${info.pct}%) · ${records.bestSessionScore} очков</b></div>`;
+   html += `<div class="record-item record-item-long"><span>🏆 Лучшая сессия</span> <b>${info.correct} / ${info.total} (${info.pct}%) · ${records.bestSessionScore} очков</b></div>`;
   } else {
     html += `<div class="record-item"><span>🏆 Лучшая сессия</span> <b>—</b></div>`;
   }
@@ -4086,7 +4136,7 @@ function openRecordsModal() {
     const info = records.bestSpeedInfo;
     const m = Math.floor(info.seconds / 60);
     const s = info.seconds % 60;
-    html += `<div class="record-item"><span>⚡ Быстрейшая сессия</span> <b>${m} мин ${s} сек (${info.total} вопр.) · ${records.bestSpeedScore} очков</b></div>`;
+    html += `<div class="record-item record-item-long"><span>⚡ Быстрейшая сессия</span> <b>${m} мин ${s} сек (верно ${info.correct || "?"} из ${info.total}) · ${records.bestSpeedScore} очков</b></div>`;
   } else {
     html += `<div class="record-item"><span>⚡ Быстрейшая сессия</span> <b>—</b></div>`;
   }
@@ -4533,12 +4583,45 @@ function startBossFight(type, topicId, threshold, bossNameFromModal, iconFromMod
   let bossName = bossNameFromModal || ""; // Берем имя из модалки!
   
 
+  // Правки (v6): приоритет боссам — 4 уровня.
+  // 1) активные ошибки (err > 0) — самое важное;
+  // 2) исправленные, но исторически проблемные (err = 0, totalErr >= 2) — «когда-то спотыкался»;
+  // 3) не начатые (ok = 0, err = 0, totalErr = 0);
+  // 4) остальные освоенные.
+  // totalErr || 0 — на случай старых записей статистики, где это поле ещё не появилось.
+  function buildBossPool(allQuestions, maxCount) {
+    const activeErr = allQuestions.filter(q => getStat(q).err > 0);
+
+    const fixedHard = allQuestions.filter(q => {
+      const s = getStat(q);
+      return s.err === 0 && (s.totalErr || 0) >= 2;
+    });
+
+    const unanswered = allQuestions.filter(q => {
+      const s = getStat(q);
+      return s.ok === 0 && s.err === 0 && (s.totalErr || 0) === 0;
+    });
+
+    const mastered = allQuestions.filter(q => {
+      const s = getStat(q);
+      return s.err === 0 && s.ok > 0 && (s.totalErr || 0) < 2;
+    });
+
+    return [
+      ...shuffle(activeErr),
+      ...shuffle(fixedHard),
+      ...shuffle(unanswered),
+      ...shuffle(mastered)
+    ].slice(0, maxCount);
+  }
+
   if (type === 'topic') {
     const topic = state.topics.find(t => t.id === topicId);
     if (!topic) return;
-    pool = topic.questions.map(q => ({ ...q, _topicId: topic.id, _topicTitle: topic.title }));
-    pool = shuffle(pool);
-    if (pool.length > 10) pool = pool.slice(0, 10);
+    // Правки (v6): сначала добавляем _topicId — иначе getStat() не найдёт статистику
+    const enriched = topic.questions.map(q => ({ ...q, _topicId: topic.id, _topicTitle: topic.title }));
+    // Правки (v6): приоритет вопросам с ошибками (как у босса дня)
+    pool = buildBossPool(enriched, 10);
     const data = loadBossData();
     if (!data.topicNames[topicId]) {
       data.topicNames[topicId] = generateRandomBossName();
@@ -4547,16 +4630,13 @@ function startBossFight(type, topicId, threshold, bossNameFromModal, iconFromMod
     bossName = data.topicNames[topicId];
   } else if (type === 'day') {
     const all = getAllQuestionsFlat();
-    const withErr = all.filter(q => getStat(q).err > 0);
-    const unanswered = all.filter(q => getStat(q).ok === 0 && getStat(q).err === 0);
-    const rest = all.filter(q => !withErr.includes(q) && !unanswered.includes(q));
-    pool = [...shuffle(withErr), ...shuffle(unanswered), ...shuffle(rest)].slice(0, 10);
+    pool = buildBossPool(all, 10);
     const data = loadBossData();
     const today = getTodayDateStr();
     if (data.day.date !== today) {
       data.day.date = today;
       data.day.name = generateRandomBossName();
-	  data.day.icon = getRandomBossIcon();
+      data.day.icon = getRandomBossIcon();
       data.day.defeated = false;
       saveBossData(data);
     }
@@ -4564,9 +4644,11 @@ function startBossFight(type, topicId, threshold, bossNameFromModal, iconFromMod
   } else if (type === 'final') {
     const all = getAllQuestionsFlat();
     const count = Math.max(10, Math.round(all.length * 0.2));
-    pool = shuffle(all).slice(0, count);
+    // Правки (v6): приоритет ошибкам — как у босса дня
+    pool = buildBossPool(all, count);
     bossName = getBossName();
   } else if (type === 'ultra') {
+    // Ультра берёт всю базу — там приоритет не важен, всё попадёт
     pool = shuffle(getAllQuestionsFlat());
     bossName = "Пожиратель Лицензий";
   }
@@ -4838,19 +4920,30 @@ function openMobileTop() {
   if (!state.topics || state.topics.length === 0) return alert("Сначала загрузите вопросы.");
 
   const topBody = document.getElementById('mobileTopBody');
-  
+  let currentSort = "count"; // 'count' (по активным) или 'total' (по общим)
+
   // Функция для отрисовки списка
   function renderTopList() {
     const all = getAllQuestionsFlat();
     
-    // Фильтруем только вопросы с ошибками
+    // Фильтруем: активные ошибки (err > 0) ИЛИ исторические (totalErr > 0)
     const withErr = all.map(item => {
       const stat = getStat(item);
-      return { item, ok: stat.ok, err: stat.err, total: stat.ok + stat.err };
-    }).filter(x => x.err > 0);
+      return { item, ok: stat.ok, err: stat.err, totalErr: stat.totalErr || 0, total: stat.ok + stat.err };
+    }).filter(x => x.err > 0 || x.totalErr > 0);
 
-    // Сортировка (по умолчанию по числу ошибок)
-    withErr.sort((a, b) => b.err - a.err);
+    // Сортировка
+    if (currentSort === "total") {
+      withErr.sort((a, b) => {
+        if (b.totalErr !== a.totalErr) return b.totalErr - a.totalErr;
+        return b.err - a.err;
+      });
+    } else {
+      withErr.sort((a, b) => {
+        if (b.err !== a.err) return b.err - a.err;
+        return b.totalErr - a.totalErr;
+      });
+    }
     
     // Берем топ-20
     const top = withErr.slice(0, 20);
@@ -4858,8 +4951,9 @@ function openMobileTop() {
     let html = `
       <div class="top-filters">
         <label>Сортировка:
-          <select id="mobTopSort">
-            <option value="count">По числу ошибок</option>
+          <select id="mobTopSort" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px;">
+            <option value="count" ${currentSort === 'count' ? 'selected' : ''}>По активным ошибкам</option>
+            <option value="total" ${currentSort === 'total' ? 'selected' : ''}>По общим ошибкам</option>
           </select>
         </label>
       </div>
@@ -4873,13 +4967,18 @@ function openMobileTop() {
     } else {
       top.forEach((row, i) => {
         const item = row.item;
-        const pct = row.total > 0 ? Math.round((row.err / row.total) * 100) : 0;
+        const pct = row.total > 0 ? Math.round((row.totalErr / row.total) * 100) : 0;
         
         html += `
           <div class="top-list-card">
             <div class="top-card-header">
               <span class="top-card-id">${escapeHtml(item.id)}</span>
-              <span class="top-card-stats">Ошибок: <b style="color:var(--err)">${row.err}</b> · Верно: <b style="color:var(--ok)">${row.ok}</b> (${pct}%)</span>
+              <span class="top-card-stats">
+                Активных: <b style="color:var(--err)">${row.err}</b> · 
+                Всего: <b style="color:var(--err)">${row.totalErr}</b> · 
+                Верно: <b style="color:var(--ok)">${row.ok}</b> · 
+                Доля ошибок: <b>${pct}%</b>
+              </span>
             </div>
             <div class="top-card-q">${escapeHtml(item.q)}</div>
             <div class="top-card-topic">${escapeHtml(item._topicTitle || "")}</div>
@@ -4891,19 +4990,26 @@ function openMobileTop() {
 
     topBody.innerHTML = html;
 
+    // Вешаем обработчик на смену сортировки (это чинит "нет переключения")
+    const selectEl = topBody.querySelector('#mobTopSort');
+    if (selectEl) {
+      selectEl.addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        renderTopList(); // Перерисовываем список с новой сортировкой
+      });
+    }
+
     // Обработчик кнопки "Перейти"
     topBody.querySelectorAll('.top-card-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const topicId = btn.dataset.topic;
         const qId = btn.dataset.id;
         
-        // Находим вопрос в базе
         const topic = state.topics.find(t => t.id === topicId);
         if (!topic) return;
         const question = topic.questions.find(q => q.id === qId);
         if (!question) return;
 
-        // Запускаем одиночный тест из этого вопроса
         state.order = [{ ...question, _topicId: topicId, _topicTitle: topic.title }];
         state.optionOrders = {};
         state.answers = {};
@@ -4912,14 +5018,20 @@ function openMobileTop() {
         state.showingReview = false;
         state.showingTop = false;
         
-        // Перемешиваем варианты (если нужно)
         let idxs = question.options.map((_, i) => i);
         if (question.shuffle !== false) idxs = shuffle(idxs);
         state.optionOrders[question.id] = idxs;
 
-        // Закрываем модалку топа и запускаем тест
+        // Фиксируем время старта (так как start() не вызовется)
+        state._sessionStartTime = Date.now();
+
         document.getElementById('mobileTopModal').classList.remove('active');
-        if (typeof launchMobileTest === 'function') launchMobileTest();
+        
+        // 1. Отрисовываем карточку вопроса в #quiz
+        render(); 
+        
+        // 2. Открываем модалку теста, пропуская пересборку вопросов
+        if (typeof launchMobileTest === 'function') launchMobileTest(true);
       });
     });
   }
@@ -4930,7 +5042,6 @@ function openMobileTop() {
   // Открываем модалку
   document.getElementById('mobileTopModal').classList.add('active');
 }
-
 // 3. Синхронизация геймификации (Стрик, Уровень, Достижения)
 function syncGamificationUI() {
   // Если геймификация не подключена, просто выходим
@@ -4967,12 +5078,10 @@ function syncGamificationUI() {
       const match = oldXp.title.match(/Уровень:\s*([^(]+)/);
       if (match) levelTextEl.textContent = match[1].trim();
     } else {
-      const totalXp = window.GameApp.state.totalXp || 0;
-      if (totalXp < 100) levelTextEl.textContent = "Новичок";
-      else if (totalXp < 250) levelTextEl.textContent = "Стажер";
-      else if (totalXp < 500) levelTextEl.textContent = "Ученик";
-      else if (totalXp < 850) levelTextEl.textContent = "Практик";
-      else levelTextEl.textContent = "Специалист";
+      // Fallback: определяем уровень по currentLevel из GameApp
+      const LEVEL_NAMES = ["Новичок","Стажер","Ученик","Практик","Специалист","Профи","Эксперт","Гуру","Мастер","Легенда","Ветеран","Архитектор","Оракул","Титан","Полубог","Хранитель","Архонт","Мифик","Сингулярность","Абсолют"];
+      const lvl = window.GameApp.state.currentLevel || 1;
+      levelTextEl.textContent = LEVEL_NAMES[lvl - 1] || "Новичок";
     }
   }
 
@@ -5008,19 +5117,29 @@ function syncGamificationUI() {
   if (avatarEl) {
     const lvl = (window.GameApp.state.currentLevel || 1);
     
-    // Набор аватаров для каждого уровня (используем одиночные эмодзи)
-    const avatars = {
-      1:  "👶", // Новичок
-      2:  "👨‍🎓", // Стажер
-      3:  "😎", // Практик
-      4:  "🧙‍♂️", // Ученик
-      5:  "🕵️", // Специалист
-      6:  "🤓", // Эксперт
-      7:  "👽", // Профи
-      8:  "🦸", // Мастер
-      9:  "🤖", // Легенда
-      10: "👑"  // Гуру
-    };
+// Правки (v6): 20 аватаров под 20 уровней, названия синхронизированы с LEVELS
+const avatars = {
+  1:  "👶",   // Новичок
+  2:  "👨‍🎓",   // Стажер
+  3:  "🎓",   // Ученик
+  4:  "😎",   // Практик
+  5:  "🧑",   // Специалист
+  6:  "🕵️",   // Профи
+  7:  "🤓",   // Эксперт
+  8:  "🧙",   // Гуру
+  9:  "👽",   // Мастер
+  10: "🦸",   // Легенда
+  11: "🤖",   // Ветеран
+  12: "👑",   // Архитектор
+  13: "🦁",   // Оракул
+  14: "🐉",   // Титан
+  15: "⚡",   // Полубог
+  16: "🔥",   // Хранитель
+  17: "💎",   // Архонт
+  18: "🌟",   // Мифик
+  19: "🌌",   // Сингулярность
+  20: "♾️"    // Абсолют
+};
   
 
 
@@ -5032,8 +5151,12 @@ function syncGamificationUI() {
     avatarEl.textContent = ""; 
     avatarEl.textContent = currentAvatar;
 
-    // Динамический цвет фона под уровень
-    if (lvl >= 8) {
+    // Динамический цвет фона под уровень (расширено для 20 уровней)
+    if (lvl >= 16) {
+      avatarEl.style.background = "linear-gradient(135deg, #ff6b6b, #ffd700, #ff8c00)"; // Огонь
+    } else if (lvl >= 12) {
+      avatarEl.style.background = "linear-gradient(135deg, #f093fb, #f5576c)"; // Розово-золотой
+    } else if (lvl >= 8) {
       avatarEl.style.background = "linear-gradient(135deg, #ffaa01, #fde400)"; // Золотой
     } else if (lvl >= 6) {
       avatarEl.style.background = "linear-gradient(135deg, #805ad5, #544674)"; // Фиолетовый
@@ -5059,11 +5182,8 @@ if (window.GameApp) {
 }
 
 // 2. Запуск и закрытие теста
-function launchMobileTest() {
+function launchMobileTest(skipStart = false) {
   // 1. Скрываем оверлеи
- // const mapOverlay = document.getElementById('mapOverlay');
- // if (mapOverlay) mapOverlay.style.display = 'none';
-  
   const bossFightModal = document.getElementById('bossFightModal');
   if (bossFightModal) bossFightModal.style.display = 'none';
   
@@ -5077,8 +5197,7 @@ function launchMobileTest() {
   }
 
   // 3. Запуск теста (если это не продолжение сессии и не бой)
-  if (!state._bossFight) {
-    // Правки для iOS: «Начать тест» продолжает восстановленную сессию
+  if (!state._bossFight && !skipStart) {
     if (state._resumePending && !state.finished) state._resumePending = false;
     else if (typeof start === 'function') start();
   }

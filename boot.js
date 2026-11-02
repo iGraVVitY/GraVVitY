@@ -89,36 +89,54 @@
     return data;
   }
   // Правки для iOS: запись снимка localStorage в IndexedDB; пустым снимком существующую копию не затираем
-  function backupNow(force) {
-    clearTimeout(timer); timer = null;
-    if (!ls) return Promise.resolve(false);
-    var data = snapshot();
-    var n = Object.keys(data).length;
-    if (!n && !force) return Promise.resolve(false); // не затираем копию пустотой
-    var savedAt = Date.now();
-    return IDB.put("kv", "snapshot", { savedAt: savedAt, count: n, data: data }).then(function (ok) {
-      if (ok) {
-        lastBackupAt = savedAt;
-        try { origSet.call(ls, STAMP, String(savedAt)); } catch (e) {}
-      }
-      return !!ok;
-    });
+function backupNow(force) {
+  clearTimeout(timer); timer = null;
+  if (!ls) return Promise.resolve(false);
+  // Правки для iOS (v6): собираем снепшот только из НЕисключённых ключей —
+  // на 350–550 вопросов это ~90–140 КБ вместо ~300 КБ.
+  var data = {};
+  var n = 0;
+  for (var i = 0; i < ls.length; i++) {
+    var k = ls.key(i);
+    if (k && !EXCLUDE_FROM_BACKUP.test(k)) { data[k] = ls.getItem(k); n++; }
   }
-  function schedule() {
-    if (suspended) return;
-    clearTimeout(timer);
-    // Правки для iOS (v5): задержка копии 600 → 300 мс — меньше шанс потерять последний ответ при закрытии приложения
-    timer = setTimeout(backupNow, 300);
-  }
+  if (!n && !force) return Promise.resolve(false);
+  var savedAt = Date.now();
+  return IDB.put("kv", "snapshot", { savedAt: savedAt, count: n, data: data }).then(function (ok) {
+    if (ok) {
+      lastBackupAt = savedAt;
+      try { origSet.call(ls, STAMP, String(savedAt)); } catch (e) {}
+    }
+    return !!ok;
+  });
+}
+
+// Правки для iOS (v6): бэкапим только критичные ключи, остальные игнорируем.
+// Ключи статистики активности (stats:activity) и текст набора (ios:savedSetText) не бэкапим —
+// они не критичны для восстановления прогресса и слишком часто/много меняются.
+var EXCLUDE_FROM_BACKUP = /^(stats:activity$|ios:savedSetText$|ios:savedSetPassword$|ui:|editor:draft:|gamification:questDate$|gamification:goalType$|__backup:)/;
+var CRITICAL_KEY = /^(stats:|session:|fav:|sel:|gamification:|ios:activeSet$)/;
+
+
+function scheduleBackup(key) {
+  if (suspended || !ls) return;
+  if (EXCLUDE_FROM_BACKUP.test(key)) return;   // не критично — не бэкапим
+  if (!CRITICAL_KEY.test(key)) return;         // неизвестный ключ — тоже не бэкапим
+  clearTimeout(timer);
+  timer = setTimeout(backupNow, 800);          // дебаунс 800 мс
+}
+
   // Правки для iOS (v5): копия «почти сразу» (в том же цикле событий собираем все записи ответа в одну транзакцию) — вызывается после каждого ответа
-  function backupSoon() {
-    if (suspended || !ls) return;
-    clearTimeout(timer);
-    timer = setTimeout(backupNow, 0);
-  }
+function backupSoon() {
+  if (suspended || !ls) return;
+  clearTimeout(timer);
+  timer = setTimeout(backupNow, 300);          // после ответа — запись через 300 мс
+}
   // Правки для iOS (v5): переполнение localStorage (лимит Safari ~5 МБ: наборы вопросов, черновики редактора) раньше молча
   // обрывало сохранение статистики. Теперь при переполнении удаляем черновики редактора и повторяем запись; если не помогло — предупреждаем.
   var quotaWarned = false;
+
+
   function isQuotaError(e) { return e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014 || /quota/i.test(String(e.message || ""))); }
   function freeSpace() {
     var freed = 0;
@@ -139,19 +157,18 @@
   }
   // Правки для iOS: перехват setItem/removeItem/clear: любое изменение прогресса через 0,6 с зеркалируется в IndexedDB — код оригинала менять не нужно
   if (proto && ls) {
-    proto.setItem = function (k, v) {
-      var r;
-      try { r = origSet.call(this, k, v); }
-      catch (e) {
-        // Правки для iOS (v5): при переполнении — чистим черновики редактора и пробуем ещё раз
-        if (this !== ls || !isQuotaError(e) || !freeSpace()) { if (this === ls && isQuotaError(e)) warnQuota(); throw e; }
-        try { r = origSet.call(this, k, v); } catch (e2) { warnQuota(); throw e2; }
-      }
-      if (this === ls && !INTERNAL.test(k)) schedule();
-      return r;
-    };
-    proto.removeItem = function (k) { var r = origRemove.call(this, k); if (this === ls && !INTERNAL.test(k)) schedule(); return r; };
-    proto.clear = function () { var r = origClear.call(this); if (this === ls) schedule(); return r; };
+proto.setItem = function (k, v) {
+  var r;
+  try { r = origSet.call(this, k, v); }
+  catch (e) {
+    if (this !== ls || !isQuotaError(e) || !freeSpace()) { if (this === ls && isQuotaError(e)) warnQuota(); throw e; }
+    try { r = origSet.call(this, k, v); } catch (e2) { warnQuota(); throw e2; }
+  }
+  if (this === ls && !INTERNAL.test(k)) scheduleBackup(k);
+  return r;
+};
+proto.removeItem = function (k) { var r = origRemove.call(this, k); if (this === ls && !INTERNAL.test(k)) scheduleBackup(k); return r; };
+proto.clear = function () { var r = origClear.call(this); if (this === ls) { clearTimeout(timer); timer = null; } return r; };
   }
   // iOS не присылает beforeunload — сохраняемся при сворачивании/закрытии
   // Правки для iOS: iOS не присылает beforeunload — досохраняем копию при сворачивании (visibilitychange) и закрытии (pagehide)
