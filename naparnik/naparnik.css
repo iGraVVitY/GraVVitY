@@ -407,3 +407,60 @@
     padding: 8px 12px !important;
   }
 }
+
+/* Анимация загрузки (три точки) */
+
+.nap-typing span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--muted, #6b7280);
+  border-radius: 50%;
+  animation: nap-bounce 1.4s infinite ease-in-out both;
+}
+.nap-typing span:nth-child(1) { animation-delay: -0.32s; }
+.nap-typing span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes nap-bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+
+/* --- Анимация котика, который печатает --- */
+.nap-cat-typing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted, #6b7280);
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.nap-cat-emoji {
+  font-size: 28px;
+  display: inline-block;
+  /* Котик будет покачиваться и «топать» лапками */
+  animation: nap-cat-wiggle 0.8s infinite ease-in-out;
+  transform-origin: bottom center;
+}
+
+.nap-cat-dots::after {
+  content: '';
+  animation: nap-dots 1.5s infinite;
+}
+
+/* Покачивание котика */
+@keyframes nap-cat-wiggle {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-4px) rotate(-10deg) scale(1.1); }
+  75% { transform: translateY(0) rotate(10deg) scale(1.1); }
+}
+
+/* Мигающие точечки после слова "печатает" */
+@keyframes nap-dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}

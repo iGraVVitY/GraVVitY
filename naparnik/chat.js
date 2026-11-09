@@ -13,14 +13,14 @@ export function openChat(ctx) {
   overlay.innerHTML = `
     <div class="nap-panel" role="dialog" aria-modal="true" aria-label="Напарник">
       <div class="nap-header">
-        <div class="nap-title">🤖 Напарник</div>
+        <div class="nap-title">🐱 Напарник</div>
         <div class="nap-sub">${IS_MOCK ? '<span class="nap-badge-mock">заглушка</span>' : ''} Разбор вопроса</div>
         <button class="nap-close" type="button" aria-label="Закрыть">✕</button>
       </div>
       <div class="nap-messages" id="napMessages"></div>
       <div class="nap-input-row">
         <textarea class="nap-input" id="napInput"
-                  placeholder="Спросите что-нибудь по этому вопросу… (Ctrl+Enter — отправить)"
+                  placeholder="Попросите что-нибудь уточнить"
                   rows="2"></textarea>
         <div class="nap-input-actions">
           <button class="nap-stop" id="napStop" type="button" style="display:none;">Стоп</button>
@@ -65,14 +65,13 @@ export function openChat(ctx) {
   if (history.length === 0) {
     // Отправляем короткий запрос, контекст уже улетел в payload
     setTimeout(() => sendInternal('Разбери, пожалуйста, этот вопрос.'), 100);
-  } else {
-    inputEl.focus();
-  }
+  } 
 
   sendBtn.addEventListener('click', () => {
     const text = inputEl.value.trim();
     if (!text) return;
     inputEl.value = '';
+    inputEl.blur();
     sendInternal(text);
   });
 
@@ -150,9 +149,18 @@ export function openChat(ctx) {
     history.push({ role: 'user', content: text });
     appendMessage('user', text, false);
 
-    streamingText = '';
-    streamingEl = appendMessage('assistant', '', true);
-    streamingEl.innerHTML = '<span class="nap-cursor">▍</span>';
+   
+       // Показываем котика, который печатает (вставляем напрямую, без Markdown)
+    streamingEl = document.createElement('div');
+    streamingEl.className = 'nap-msg nap-msg-assistant nap-streaming';
+    streamingEl.innerHTML = `
+      <div class="nap-cat-typing">
+        <span class="nap-cat-emoji">🐱</span>
+        <span>Котик печатает<span class="nap-cat-dots"></span></span>
+      </div>
+    `;
+    messagesEl.appendChild(streamingEl);
+    scrollBottom();
 
     sendBtn.disabled = true;
     inputEl.disabled = true;
@@ -172,18 +180,31 @@ export function openChat(ctx) {
     };
 
     sendMessage(payload, {
-      onDelta: (delta) => {
-        streamingText += delta;
-        streamingEl.innerHTML = renderMarkdown(streamingText) + '<span class="nap-cursor">▍</span>';
-        scrollBottom();
-      },
+      onDelta: () => {}, // Нам больше не нужны дельты от сервера
       onDone: (fullText) => {
-        const finalText = fullText || streamingText;
+        const finalText = fullText || '';
         streamingEl.classList.remove('nap-streaming');
-        streamingEl.innerHTML = renderMarkdown(finalText);
+        streamingEl.innerHTML = '';
+        
         history.push({ role: 'assistant', content: finalText });
         saveHistory(ctx.fileKey, ctx.conversationId, history);
-        finishStreaming();
+
+        // ФЕЙКОВЫЙ СТРИМИНГ (печатаем текст по кусочкам)
+        let i = 0;
+        const speed = 15; // Задержка между кадрами (мс)
+        const chunkSize = 3; // Сколько символов добавлять за кадр
+        
+        const typeInterval = setInterval(() => {
+          i += chunkSize;
+          if (i >= finalText.length) {
+            clearInterval(typeInterval);
+            streamingEl.innerHTML = renderMarkdown(finalText);
+            finishStreaming();
+          } else {
+            streamingEl.innerHTML = renderMarkdown(finalText.slice(0, i)) + '<span class="nap-cursor">▍</span>';
+            scrollBottom();
+          }
+        }, speed);
       },
       onError: (err) => {
         streamingEl.classList.remove('nap-streaming');
@@ -202,7 +223,7 @@ export function openChat(ctx) {
     sendBtn.disabled = false;
     inputEl.disabled = false;
     stopBtn.style.display = 'none';
-    inputEl.focus();
+     inputEl.blur();
     scrollBottom();
   }
 }

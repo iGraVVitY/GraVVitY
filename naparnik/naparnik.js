@@ -52,7 +52,7 @@ function injectButton() {
   btn.className = BTN_CLASS;
   btn.dataset.qkey = qKey;
   btn.title = 'Разобрать вопрос с 1С:Напарник';
-  btn.innerHTML = '🤖 Напарник';
+  btn.innerHTML = '🐱 Напарник';
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
