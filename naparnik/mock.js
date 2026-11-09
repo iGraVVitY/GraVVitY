@@ -47,8 +47,10 @@ function sleep(ms, signal) {
 
 function buildMockAnswer(payload) {
   const isFirst = !payload.history || payload.history.length === 0;
-  const correctLetter = optionLetter(payload.correct_option_id);
-  const userLetter = payload.user_option_id != null ? optionLetter(payload.user_option_id) : '—';
+  
+  // Теперь используем цифры вместо букв
+  const correctNum = optionNumber(payload.correct_option_id);
+  const userNum = payload.user_option_id != null ? optionNumber(payload.user_option_id) : '—';
   const correctText = getOptionText(payload.correct_option_id, payload.options);
   const userText = payload.user_option_id != null
     ? getOptionText(payload.user_option_id, payload.options)
@@ -57,8 +59,8 @@ function buildMockAnswer(payload) {
   if (isFirst) {
     return (
       `**Разбор вопроса** (тема: _${esc(payload.topic || '—')}_)\n\n` +
-      `Правильный ответ: **${correctLetter}** — ${esc(correctText)}\n\n` +
-      `Ваш ответ: **${userLetter}** — ${esc(userText)}\n\n` +
+      `Правильный ответ: **${correctNum}** — ${esc(correctText)}\n\n` +
+      `Ваш ответ: **${userNum}** — ${esc(userText)}\n\n` +
       `Почему ваш вариант неверен, а правильный — верен, здесь будет объяснять 1С:Напарник. ` +
       `Пока это заглушка: текст «печатается» по кусочкам, его можно прервать кнопкой «Стоп».\n\n` +
       `_Когда бэкенд будет готов, вместо этого текста придёт настоящий разбор._`
@@ -73,11 +75,12 @@ function buildMockAnswer(payload) {
   );
 }
 
-function optionLetter(optionId) {
+// Возвращает номер варианта (1, 2, 3...)
+function optionNumber(optionId) {
   if (optionId == null) return '—';
   const idx = parseInt(optionId, 10);
   if (isNaN(idx)) return '—';
-  return String.fromCharCode(65 + idx);
+  return String(idx + 1); 
 }
 
 function getOptionText(optionId, options) {

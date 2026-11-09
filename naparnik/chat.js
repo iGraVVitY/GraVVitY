@@ -175,13 +175,25 @@ export function openChat(ctx) {
 }
 
 // Минимальный markdown → HTML (код, **жирный**, *курсив*, переносы)
+// Используем библиотеку marked для рендера
 function renderMarkdown(text) {
   if (text == null) return '';
+  
+  // Если библиотека загрузилась, используем её
+  if (window.marked) {
+    // Настройка для безопасности (чтобы не выполнялись скрипты, если они вдруг придут)
+    window.marked.setOptions({
+      breaks: true, // Переносы строк превращаются в <br>
+      gfm: true     // Поддержка таблиц и списков (GitHub Flavored Markdown)
+    });
+    return window.marked.parse(String(text));
+  }
+  
+  // Если библиотека почему-то не загрузилась, используем старый (простой) вариант
   let s = escapeHtml(String(text));
   s = s.replace(/```([\s\S]*?)```/g, (_, code) => '<pre><code>' + code.replace(/^\n/, '') + '</code></pre>');
   s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
-  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>');
   s = s.replace(/\n/g, '<br>');
   return s;
 }

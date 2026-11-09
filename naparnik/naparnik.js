@@ -76,21 +76,27 @@ function openChatForItem(item) {
   if (chosen === undefined) return;
 
   const optionOrder = s.optionOrders[item.id] || item.options.map((_, i) => i);
-  const userOptionIndex = optionOrder[chosen];
-
-  const options = item.options.map((text, i) => ({
-    id: String(i),
-    text: String(text),
+  
+  // 1. Собираем варианты в том порядке, в котором их видит пользователь (перемешанные)
+  const options = optionOrder.map((originalIdx, displayIdx) => ({
+    id: String(displayIdx), // ID — это позиция на экране (0, 1, 2, 3...)
+    text: String(item.options[originalIdx]) // Текст берем из оригинального массива
   }));
+  
+  // 2. Ищем, под каким номером на экране находится правильный ответ
+  const correctDisplayIdx = optionOrder.indexOf(item.correct - 1);
+  
+  // 3. Ответ пользователя - это просто индекс того варианта, на который он нажал
+  const userOptionId = String(chosen);
 
   openChat({
     fileKey: app.fileKey || 'default',
     conversationId: item._topicId + ':' + item.id,
     topic: item._topicTitle || '',
     questionText: item.q,
-    options,
-    correctOptionId: String(item.correct - 1),
-    userOptionId: String(userOptionIndex),
+    options, // Теперь тут перемешанные варианты
+    correctOptionId: String(correctDisplayIdx), // Индекс правильного ответа на экране
+    userOptionId: userOptionId, // Индекс ответа пользователя на экране
     onClose: () => {},
   });
 }
