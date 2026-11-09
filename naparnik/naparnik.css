@@ -190,34 +190,13 @@
   gap: 8px;
   flex-shrink: 0;
 }
-.nap-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid var(--border, #e2e6ee);
-  border-radius: 10px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: none;
-  background: var(--bg, #f4f6fa);
-  color: var(--text, #1c1f26);
-  min-height: 44px;
-}
+
 .nap-input:focus { outline: none; border-color: var(--accent, #2b6cb0); }
 .nap-input-actions { display: flex; gap: 8px; justify-content: flex-end; }
-.nap-send, .nap-stop {
-  padding: 8px 18px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  font-family: inherit;
-}
+
 .nap-send { background: var(--accent, #2b6cb0); color: #fff; }
 .nap-send:hover { background: var(--accent-hover, #1f4e80); }
 .nap-send:disabled { opacity: 0.5; cursor: not-allowed; }
-.nap-stop { background: transparent; border-color: var(--err, #c53030); color: var(--err, #c53030); }
 .nap-stop:hover { background: var(--err-bg, #ffecec); }
 
 /* --- Стили для Markdown-контента в ответах ИИ --- */
@@ -402,10 +381,7 @@
     max-width: 95% !important; /* Пузырь может занимать почти всю ширину */
   }
   
-  /* 5. Чуть компактнее поле ввода */
-  .nap-input-row {
-    padding: 8px 12px !important;
-  }
+
 }
 
 /* Анимация загрузки (три точки) */
@@ -463,4 +439,87 @@
   40% { content: '.'; }
   60% { content: '..'; }
   80%, 100% { content: '...'; }
+}
+
+/* --- Мобильный редизайн чата --- */
+
+/* 1. Растягиваем модалку на весь экран на телефонах */
+@media (max-width: 720px) {
+  .nap-panel {
+    max-height: 100dvh !important; /* dvh учитывает адресную строку браузера */
+    height: 100dvh !important;
+    border-radius: 0 !important;
+  }
+  .nap-overlay {
+    padding: 0 !important;
+  }
+  /* Делаем отступы внутри сообщений чуть меньше */
+  .nap-messages {
+    padding: 12px !important;
+  }
+}
+
+/* 2. Убираем лишние отступы у футера */
+.nap-input-row {
+  display: flex !important;
+  flex-direction: row !important; /* В одну строку */
+  align-items: flex-end !important; /* Прижимаем к низу, если textarea вырастет */
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important; /* Для iPhone */
+  background: var(--card, #fff);
+  border-top: 1px solid var(--border, #e2e6ee);
+}
+
+/* 3. Поле ввода */
+.nap-input {
+  flex: 1 !important;
+  min-height: 40px !important;
+  max-height: 100px !important; /* Ограничиваем рост */
+  padding: 10px 14px !important;
+  border-radius: 20px !important; /* Круглые края */
+  border: 1px solid var(--border, #e2e6ee) !important;
+  background: var(--bg, #f4f6fa) !important;
+  color: var(--text, #1c1f26) !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  resize: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.nap-input:focus {
+  outline: none !important;
+  border-color: var(--accent, #2b6cb0) !important;
+}
+
+/* 4. Кнопки (иконки) */
+.nap-send, .nap-stop {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  border-radius: 50% !important; /* Круглые кнопки */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+.nap-send {
+  background: var(--accent, #2b6cb0) !important;
+  color: #fff !important;
+}
+.nap-send:hover { background: var(--accent-hover, #1f4e80) !important; }
+.nap-send:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
+.nap-send svg { margin-left: -2px; } /* Оптический центр для стрелочки */
+
+.nap-stop {
+  background: var(--err-bg, #ffecec) !important;
+  color: var(--err, #c53030) !important;
+  border: 1px solid var(--err, #c53030) !important;
+  font-size: 18px !important;
 }

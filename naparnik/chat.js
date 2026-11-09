@@ -19,13 +19,11 @@ export function openChat(ctx) {
       </div>
       <div class="nap-messages" id="napMessages"></div>
       <div class="nap-input-row">
-        <textarea class="nap-input" id="napInput"
-                  placeholder="Попросите что-нибудь уточнить"
-                  rows="2"></textarea>
-        <div class="nap-input-actions">
-          <button class="nap-stop" id="napStop" type="button" style="display:none;">Стоп</button>
-          <button class="nap-send" id="napSend" type="button">Отправить</button>
-        </div>
+        <textarea class="nap-input" id="napInput" placeholder="Спросите что-нибудь..." rows="1"></textarea>
+        <button class="nap-stop" id="napStop" type="button" style="display:none;" title="Остановить">⏹</button>
+        <button class="nap-send" id="napSend" type="button" title="Отправить">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
       </div>
     </div>
   `;
@@ -79,6 +77,16 @@ export function openChat(ctx) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       sendBtn.click();
+    }
+  });
+
+    // Автоматическое увеличение высоты textarea
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = (inputEl.scrollHeight) + 'px';
+    // Ограничиваем максимальную высоту (примерно 4 строки)
+    if (inputEl.scrollHeight > 100) {
+      inputEl.style.height = '100px';
     }
   });
 
