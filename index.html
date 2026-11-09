@@ -660,6 +660,20 @@ setTimeout(function(){
 <script src="boot.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script type="module" src="naparnik/naparnik.js"></script>
-
+  <!-- ВРЕМЕННЫЙ ОТЛАДЧИК ДЛЯ МОБИЛЬНЫХ -->
+  <script>
+    // Включаем Eruda, только если в адресе есть ?debug
+    if (window.location.search.includes('debug')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+      document.body.appendChild(script);
+      script.onload = function() {
+        eruda.init();
+        console.log("Eruda успешно запущена!");
+      };
+    }
+  </script>
+</body>
+</html>
 </body>
 </html>
