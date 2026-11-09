@@ -61,11 +61,21 @@ export function openChat(ctx) {
   renderHistory();
 
   if (history.length === 0) {
-    setTimeout(() => sendInternal('Разбери, пожалуйста, этот вопрос.'), 60);
+    // Формируем красивый первый запрос с контекстом
+    let initialMsg = `Разбери, пожалуйста, этот вопрос:\n\n> ${ctx.questionText}\n\n`;
+    
+    // Добавляем варианты, чтобы ИИ и пользователь видели полную картину
+    initialMsg += `**Варианты ответов:**\n`;
+    ctx.options.forEach((opt, i) => {
+      const isUserChoice = (String(opt.id) === String(ctx.userOptionId));
+      initialMsg += `${i + 1}. ${opt.text} ${isUserChoice ? ' 👈 **(Мой выбор)**' : ''}\n`;
+    });
+
+    setTimeout(() => sendInternal(initialMsg), 100);
   } else {
     inputEl.focus();
   }
-
+  
   sendBtn.addEventListener('click', () => {
     const text = inputEl.value.trim();
     if (!text) return;

@@ -1,15 +1,17 @@
 /* naparnik/naparnik.css */
 
-/* --- Кнопка «Напарник» в шапке карточки вопроса --- */
 .nap-ask-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  height: 36px; /* 👈 Фиксируем высоту, как у .icon-btn */
+  padding: 0 12px; /* Убираем вертикальные отступы, оставляем горизонтальные */
+  box-sizing: border-box; /* Чтобы границы не увеличивали высоту */
   border: 1px solid var(--accent, #2b6cb0);
   background: var(--card, #fff);
   color: var(--accent, #2b6cb0);
-  border-radius: 10px;
+  border-radius: 10px; /* Такое же скругление, как у остальных кнопок */
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -18,10 +20,23 @@
   white-space: nowrap;
   transition: background .15s, color .15s, transform .1s;
 }
-.nap-ask-btn:hover { background: var(--accent, #2b6cb0); color: #fff; }
-.nap-ask-btn:active { transform: scale(0.97); }
+
+.nap-ask-btn:hover { 
+  background: var(--accent, #2b6cb0); 
+  color: #fff; 
+}
+
+.nap-ask-btn:active { 
+  transform: scale(0.97); 
+}
+
+/* Адаптация для маленьких экранов */
 @media (max-width: 420px) {
-  .nap-ask-btn { padding: 6px 8px; font-size: 12px; }
+  .nap-ask-btn { 
+    height: 36px; /* Сохраняем высоту */
+    padding: 0 8px; 
+    font-size: 12px; 
+  }
 }
 
 /* --- Оверлей чата --- */
