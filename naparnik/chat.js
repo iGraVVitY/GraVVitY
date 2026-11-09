@@ -59,23 +59,16 @@ export function openChat(ctx) {
   document.addEventListener('keydown', onKey);
 
   renderHistory();
+  // Всегда отрисовываем карточку контекста вверху
+  renderContextCard();
 
   if (history.length === 0) {
-    // Формируем красивый первый запрос с контекстом
-    let initialMsg = `Разбери, пожалуйста, этот вопрос:\n\n> ${ctx.questionText}\n\n`;
-    
-    // Добавляем варианты, чтобы ИИ и пользователь видели полную картину
-    initialMsg += `**Варианты ответов:**\n`;
-    ctx.options.forEach((opt, i) => {
-      const isUserChoice = (String(opt.id) === String(ctx.userOptionId));
-      initialMsg += `${i + 1}. ${opt.text} ${isUserChoice ? ' 👈 **(Мой выбор)**' : ''}\n`;
-    });
-
-    setTimeout(() => sendInternal(initialMsg), 100);
+    // Отправляем короткий запрос, контекст уже улетел в payload
+    setTimeout(() => sendInternal('Разбери, пожалуйста, этот вопрос.'), 100);
   } else {
     inputEl.focus();
   }
-  
+
   sendBtn.addEventListener('click', () => {
     const text = inputEl.value.trim();
     if (!text) return;
@@ -96,6 +89,36 @@ export function openChat(ctx) {
       currentAbort = null;
     }
   });
+
+  function renderContextCard() {
+    const el = document.createElement('div');
+    el.className = 'nap-context-card';
+    
+    let optionsHtml = '';
+    ctx.options.forEach((opt, i) => {
+      const isUserChoice = (String(opt.id) === String(ctx.userOptionId));
+      const isCorrect = (String(opt.id) === String(ctx.correctOptionId));
+      
+      let cls = 'nap-context-opt';
+      if (isUserChoice) cls += ' is-user';
+      
+      optionsHtml += `<div class="${cls}">
+        <span class="nap-context-opt-num">${i + 1}.</span>
+        <span class="nap-context-opt-text">${escapeHtml(opt.text)}</span>
+        ${isUserChoice ? '<span class="nap-context-opt-badge">Ваш выбор</span>' : ''}
+      </div>`;
+    });
+
+    el.innerHTML = `
+      <div class="nap-context-topic">📚 ${escapeHtml(ctx.topic || 'Вопрос')}</div>
+      <div class="nap-context-question">${escapeHtml(ctx.questionText)}</div>
+      <div class="nap-context-options">${optionsHtml}</div>
+    `;
+    
+    // Вставляем карточку в начало списка сообщений
+     messagesEl.prepend(el);
+    scrollBottom();
+  }
 
   function renderHistory() {
     messagesEl.innerHTML = '';

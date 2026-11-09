@@ -12,6 +12,7 @@ export async function sendMessage(payload, { onDelta, onDone, onError, signal })
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal,
+      cache: 'no-store' // 👈 ДОБАВИТЬ ВОТ ЭТУ СТРОКУ
     });
 
     if (!response.ok) {
