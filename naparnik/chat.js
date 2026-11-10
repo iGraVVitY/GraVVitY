@@ -279,13 +279,48 @@ export function openChat(ctx) {
         finalParentUuid = parentUuid;
         if (typeQueue.length === 0 && !typingTimer) finishStreamingUI();
       },
-      onError: (err) => {
-        if (typingTimer) clearInterval(typingTimer);
-        streamingEl.classList.remove('nap-streaming');
-        streamingEl.innerHTML = `<span class="nap-error">⚠️ Ошибка: ${escapeHtml((err && err.message) || 'неизвестная')}</span>`;
-        if (history.length && history[history.length - 1].role === 'user') history.pop();
-        finishStreaming();
-      },
+                  onError: (err) => {
+            if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
+            if (typingTimer) clearInterval(typingTimer);
+            if (streamingEl) streamingEl.classList.remove('nap-streaming');
+            
+            // Откатываем историю, чтобы при повторе не было визуальных дублей
+            if (history.length && history[history.length - 1].role === 'user') history.pop();
+
+            // Формируем UI с кнопкой повтора для ЛЮБОЙ ошибки
+            const errorHtml = `
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span class="nap-error">⚠️ ${escapeHtml((err && err.message) || 'Ошибка соединения')}</span>
+                <button class="nap-retry-btn" style="padding: 6px 12px; border-radius: 8px; background: var(--accent, #2b6cb0); color: #fff; border: none; cursor: pointer; font-weight: 600;">🔄 Повторить</button>
+              </div>
+            `;
+
+            if (streamingEl) {
+              streamingEl.innerHTML = errorHtml;
+              
+              const retryBtn = streamingEl.querySelector('.nap-retry-btn');
+              if (retryBtn) {
+                // Сохраняем ссылку на элемент в локальную переменную, 
+                // так как finishStreaming() ниже обнулит глобальную streamingEl
+                const currentStreamingEl = streamingEl; 
+                
+                retryBtn.addEventListener('click', () => {
+                  // Удаляем пузырь с ошибкой
+                  if (currentStreamingEl && currentStreamingEl.parentNode) {
+                    currentStreamingEl.remove();
+                  }
+                  // Удаляем последнее сообщение пользователя из DOM
+                  const userMsgs = messagesEl.querySelectorAll('.nap-msg-user');
+                  if (userMsgs.length > 0) userMsgs[userMsgs.length - 1].remove();
+                  
+                  // Отправляем запрос заново
+                  sendInternal(text);
+                });
+              }
+            }
+            
+            finishStreaming();
+          },
       signal: currentAbort.signal,
     });
   }
