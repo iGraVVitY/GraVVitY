@@ -1,73 +1,129 @@
 // naparnik/api.js
 
 // ⬇️ ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ ИЗ CLOUDFLARE ⬇️
-const API_URL = 'https://back.igravvity.workers.dev/api'; 
+const BACKEND_URL = 'https://back.igravvity.workers.dev/api/explain';
 
-export const IS_MOCK = false; 
+export const IS_MOCK = false;
 
-export async function sendMessage(payload, { onDelta, onDone, onError, onMeta, onStatus, signal }) {
-  try {
-    // 1. Отправляем задачу
-    const response = await fetch(`${API_URL}/explain`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      cache: 'no-store'
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Ошибка сервера: ${response.status} ${errText}`);
-    }
+export function sendMessage(payload, { onDelta, onDone, onError, onMeta, onStatus, signal }) {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', BACKEND_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
     
-    const { taskId } = await response.json();
+    let lastIndex = 0;
+    let buffer = '';
+    let fullText = '';
+    let isDoneCalled = false;
+    let isError = false;
 
-    // 2. Начинаем поллинг (опрос)
-    let isDone = false;
-    
-    // Показываем котику фейковые статусы, чтобы пользователь не скучал
-    const statuses = ["Думаю...", "Анализирую...", "Проверяю...", "Формулирую ответ...", "Ищу ошибки...", "Играю с хвостом..."];
-    let statusIdx = 0;
-
- let attempts = 0; 
-
-    while (!isDone) {
-      if (signal && signal.aborted) throw new DOMException('Aborted', 'AbortError');
-      
-      // Ждем 4 секунды перед следующим запросом
-      await new Promise(r => setTimeout(r, 4000));
-
-      if (attempts > 30) {
-        throw new Error('Превышено время ожидания сервера. Попробуйте еще раз.');
+    // Ловим meta-данные из заголовков (если сервер их отправит)
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 2) { // HEADERS_RECEIVED
+        const convUuid = xhr.getResponseHeader('X-Conversation-Uuid');
+        if (convUuid && onMeta) {
+          onMeta(convUuid);
+        }
       }
+    };
 
+    xhr.onprogress = () => {
+      const currentText = xhr.responseText;
+      if (currentText.length > lastIndex) {
+        const newChunk = currentText.substring(lastIndex);
+        lastIndex = currentText.length;
+        
+        buffer += newChunk;
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
 
-      // Обновляем статус на экране
-      if (onStatus) onStatus(statuses[statusIdx % statuses.length]);
-      statusIdx++;
+        for (const event of events) {
+          if (!event.trim()) continue;
+          
+          // Игнорируем SSE-комментарии (пинги)
+          if (event.trim().startsWith(':')) continue;
+          
+          for (const line of event.split('\n')) {
+            if (line.startsWith('data:')) {
+              const dataStr = line.replace(/^data:\s*/, '');
+              try {
+                const parsed = JSON.parse(dataStr);
+                
+                // 1. Пропускаем технический пинг
+                if (parsed.ping) continue;
 
-      const check = await fetch(`${API_URL}/result?taskId=${taskId}`, { cache: 'no-store' });
-      const data = await check.json();
+                // 2. Ловим ID диалога
+                if (parsed.__meta) { 
+                  if (onMeta) onMeta(parsed.__meta.conversation_uuid); 
+                  continue; 
+                }
 
-      if (data.status === 'pending') {
-        continue; // Еще не готово, спрашиваем дальше
+                // 3. Ловим фейковые статусы для котика
+                if (parsed.fake_status) { 
+                  if (onStatus) onStatus(parsed.fake_status); 
+                  continue; 
+                }
+
+                // 4. Ловим ошибки
+                if (parsed.error) { 
+                  isError = true;
+                  if (onError) onError({ code: 'api_error', message: parsed.error.message || 'Ошибка сервера' }); 
+                  return; 
+                }
+
+                // 5. Игнорируем "мысли" модели (reasoning_content)
+                if (parsed.content_delta && parsed.content_delta.reasoning_content) {
+                  continue; 
+                }
+
+                // 6. Ловим реальный текст ответа
+                if (parsed.content_delta && parsed.content_delta.content) {
+                  const delta = parsed.content_delta.content;
+                  fullText += delta;
+                  if (onDelta) onDelta(delta);
+                }
+
+                // 7. Ловим финальный пакет
+                if (parsed.finished && parsed.content && parsed.content.content) {
+                  if (!isDoneCalled) {
+                    isDoneCalled = true;
+                    if (onDone) onDone(parsed.content.content, parsed.uuid);
+                  }
+                }
+              } catch (e) {
+                // Игнорируем невалидный JSON
+              }
+            }
+          }
+        }
       }
+    };
 
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Ошибка на сервере 1С');
+    xhr.onload = () => {
+      if (!isDoneCalled && !isError) {
+        if (fullText) {
+          if (onDone) onDone(fullText);
+        } else {
+          if (onError) onError({ code: 'empty', message: 'Сервер закрыл соединение без ответа.' });
+        }
       }
+      resolve();
+    };
 
-      if (data.status === 'done') {
-        isDone = true;
-        if (onMeta) onMeta(data.conversation_uuid);
-        // Отдаем весь текст сразу
-        onDelta(data.text); 
-        onDone(data.text, data.parent_uuid);
+    xhr.onerror = () => {
+      if (!isError) {
+        if (onError) onError({ code: 'network', message: 'Ошибка сети (XHR).' });
       }
+      resolve();
+    };
+
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        xhr.abort();
+        resolve();
+      });
     }
 
-  } catch (err) {
-    if (err.name === 'AbortError') return;
-    onError({ code: 'network', message: err.message });
-  }
+    xhr.send(JSON.stringify(payload));
+  });
 }
