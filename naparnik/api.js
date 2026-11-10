@@ -29,6 +29,8 @@ export async function sendMessage(payload, { onDelta, onDone, onError, onMeta, o
     const statuses = ["Думаю...", "Анализирую...", "Проверяю...", "Формулирую ответ...", "Ищу ошибки...", "Играю с хвостом..."];
     let statusIdx = 0;
 
+ let attempts = 0; 
+
     while (!isDone) {
       if (signal && signal.aborted) throw new DOMException('Aborted', 'AbortError');
       
