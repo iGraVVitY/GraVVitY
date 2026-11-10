@@ -34,8 +34,10 @@ export function sendMessage(payload, { onDelta, onDone, onError, onMeta, onStatu
                 if (parsed.ping) continue;
                 if (parsed.__meta) { if (onMeta) onMeta(parsed.__meta.conversation_uuid); continue; }
                 if (parsed.fake_status) { if (onStatus) onStatus(parsed.fake_status); continue; }
-                if (parsed.error) { onError({ code: 'api_error', message: parsed.error.message }); return; }
-
+                  if (parsed.error) { 
+                  onError({ code: 'api_error', message: parsed.error.message || 'Ошибка 1С' }); 
+                  return; // Прерываем обработку
+                }
                 if (parsed.content_delta && parsed.content_delta.content) {
                   fullText += parsed.content_delta.content;
                   onDelta(parsed.content_delta.content);
