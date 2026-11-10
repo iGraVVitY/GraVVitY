@@ -1,81 +1,71 @@
-const BACKEND_URL = 'https://back.igravvity.workers.dev/api/explain';
+// naparnik/api.js
+
+// ⬇️ ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ ИЗ CLOUDFLARE ⬇️
+const API_URL = 'https://back.igravvity.workers.dev/api'; 
+
 export const IS_MOCK = false; 
 
-export function sendMessage(payload, { onDelta, onDone, onError, onMeta, onStatus, signal }) {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', BACKEND_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+export async function sendMessage(payload, { onDelta, onDone, onError, onMeta, onStatus, signal }) {
+  try {
+    // 1. Отправляем задачу
+    const response = await fetch(`${API_URL}/explain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Ошибка сервера: ${response.status} ${errText}`);
+    }
     
-    let lastIndex = 0;
-    let buffer = '';
-    let fullText = '';
-    let isDoneCalled = false;
+    const { taskId } = await response.json();
 
-    xhr.onprogress = () => {
-      const currentText = xhr.responseText;
-      if (currentText.length > lastIndex) {
-        const newChunk = currentText.substring(lastIndex);
-        lastIndex = currentText.length;
-        
-        buffer += newChunk;
-        const events = buffer.split('\n\n');
-        buffer = events.pop();
+    // 2. Начинаем поллинг (опрос)
+    let isDone = false;
+    
+    // Показываем котику фейковые статусы, чтобы пользователь не скучал
+    const statuses = ["Думаю...", "Анализирую...", "Проверяю...", "Формулирую ответ...", "Ищу ошибки...", "Играю с хвостом..."];
+    let statusIdx = 0;
 
-        for (const event of events) {
-          if (!event.trim()) continue;
-          const lines = event.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data:')) {
-              const dataStr = line.replace(/^data:\s*/, '');
-              try {
-                const parsed = JSON.parse(dataStr);
-                
-                if (parsed.ping) continue;
-                if (parsed.__meta) { if (onMeta) onMeta(parsed.__meta.conversation_uuid); continue; }
-                if (parsed.fake_status) { if (onStatus) onStatus(parsed.fake_status); continue; }
-                  if (parsed.error) { 
-                  onError({ code: 'api_error', message: parsed.error.message || 'Ошибка 1С' }); 
-                  return; // Прерываем обработку
-                }
-                if (parsed.content_delta && parsed.content_delta.content) {
-                  fullText += parsed.content_delta.content;
-                  onDelta(parsed.content_delta.content);
-                }
+    while (!isDone) {
+      if (signal && signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      
+      // Ждем 4 секунды перед следующим запросом
+      await new Promise(r => setTimeout(r, 4000));
 
-                if (parsed.finished && parsed.content && parsed.content.content) {
-                  if (!isDoneCalled) {
-                    isDoneCalled = true;
-                    onDone(parsed.content.content, parsed.uuid);
-                  }
-                }
-              } catch (e) {}
-            }
-          }
-        }
+      if (attempts > 30) {
+        throw new Error('Превышено время ожидания сервера. Попробуйте еще раз.');
       }
-    };
 
-    xhr.onload = () => {
-      if (!isDoneCalled) {
-        if (fullText) onDone(fullText);
-        else onError({ code: 'empty', message: 'Сервер закрыл соединение без ответа. Возможно, 1С задумалась.' });
+
+      // Обновляем статус на экране
+      if (onStatus) onStatus(statuses[statusIdx % statuses.length]);
+      statusIdx++;
+
+      const check = await fetch(`${API_URL}/result?taskId=${taskId}`, { cache: 'no-store' });
+      const data = await check.json();
+
+      if (data.status === 'pending') {
+        continue; // Еще не готово, спрашиваем дальше
       }
-      resolve();
-    };
 
-    xhr.onerror = () => {
-      onError({ code: 'network', message: 'Ошибка сети (XHR)' });
-      resolve();
-    };
+      if (data.status === 'error') {
+        throw new Error(data.message || 'Ошибка на сервере 1С');
+      }
 
-    if (signal) {
-      signal.addEventListener('abort', () => {
-        xhr.abort();
-        resolve();
-      });
+      if (data.status === 'done') {
+        isDone = true;
+        if (onMeta) onMeta(data.conversation_uuid);
+        // Отдаем весь текст сразу
+        onDelta(data.text); 
+        onDone(data.text, data.parent_uuid);
+      }
     }
 
-    xhr.send(JSON.stringify(payload));
-  });
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    onError({ code: 'network', message: err.message });
+  }
 }
