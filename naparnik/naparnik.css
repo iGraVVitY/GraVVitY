@@ -523,3 +523,25 @@
   border: 1px solid var(--err, #c53030) !important;
   font-size: 18px !important;
 }
+
+/* Анимация котика */
+.nap-cat {
+  display: inline-block;
+  animation: cat-bounce 1s infinite alternate ease-in-out;
+  margin-right: 4px;
+}
+
+@keyframes cat-bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+.nap-status-text {
+  color: var(--muted, #6b7280);
+  font-style: italic;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

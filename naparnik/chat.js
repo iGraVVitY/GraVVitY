@@ -8,6 +8,11 @@ export function openChat(ctx) {
 
   const history = loadHistory(ctx.fileKey, ctx.conversationId);
 
+
+  const storageKey = `nap:api:${ctx.fileKey}:${ctx.conversationId}`;
+  let apiConvUuid = localStorage.getItem(storageKey + ':conv') || null;
+  let apiParentUuid = localStorage.getItem(storageKey + ':parent') || null;
+
   const overlay = document.createElement('div');
   overlay.className = 'nap-overlay';
   overlay.innerHTML = `
@@ -95,6 +100,11 @@ export function openChat(ctx) {
       try { currentAbort.abort(); } catch (e) {}
       currentAbort = null;
     }
+    // Останавливаем печать и очищаем всё
+    if (typeof typingTimer !== 'undefined' && typingTimer) {
+      clearInterval(typingTimer);
+    }
+    finishStreaming(); // Возвращаем кнопки в нормальное состояние
   });
 
   function renderContextCard() {
@@ -134,7 +144,7 @@ export function openChat(ctx) {
       return;
     }
     for (const msg of history) appendMessage(msg.role, msg.content, false);
-    scrollBottom();
+    scrollBottom(true); 
   }
 
   function appendMessage(role, content, isStreaming) {
@@ -146,29 +156,38 @@ export function openChat(ctx) {
     return el;
   }
 
-  function scrollBottom() {
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+  function isAtBottom() {
+    // Если отступ от низа меньше 60 пикселей, считаем, что мы внизу
+    return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 60;
   }
 
+  function scrollBottom(force = false) {
+    // Если force=true, скроллим всегда. Иначе — только если мы уже внизу.
+    if (force || isAtBottom()) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
   function sendInternal(text) {
     const empty = messagesEl.querySelector('.nap-empty');
     if (empty) empty.remove();
 
+    let isStart = history.length === 0;
+    // Если нет родителя, значит это по факту старт (даже если история есть)
+    if (!isStart && !apiParentUuid) {
+      isStart = true;
+      apiConvUuid = null;
+      localStorage.removeItem(storageKey + ':conv');
+    }
+
     history.push({ role: 'user', content: text });
     appendMessage('user', text, false);
+    scrollBottom(true);
 
-   
-       // Показываем котика, который печатает (вставляем напрямую, без Markdown)
-    streamingEl = document.createElement('div');
-    streamingEl.className = 'nap-msg nap-msg-assistant nap-streaming';
-    streamingEl.innerHTML = `
-      <div class="nap-cat-typing">
-        <span class="nap-cat-emoji">🐱</span>
-        <span>Котик печатает<span class="nap-cat-dots"></span></span>
-      </div>
-    `;
-    messagesEl.appendChild(streamingEl);
-    scrollBottom();
+    // Создаем ОДИН пузырь для всего (и для котика, и для текста)
+    streamingText = '';
+    streamingEl = appendMessage('assistant', '', true);
+    // Включаем котика
+    streamingEl.innerHTML = `<span class="nap-cat">🐱</span> <span class="nap-status-text">Напарник думает...</span>`;
 
     sendBtn.disabled = true;
     inputEl.disabled = true;
@@ -176,45 +195,92 @@ export function openChat(ctx) {
 
     currentAbort = new AbortController();
 
+    let typeQueue = ''; 
+    let typingTimer = null; 
+    let isStreamDone = false; 
+    let finalFullText = ''; 
+    let finalParentUuid = null; 
+    let isTypingStarted = false; // Флаг: пошел ли реальный текст
+
+    function startTyping() {
+      if (typingTimer) return; 
+      typingTimer = setInterval(() => {
+        if (typeQueue.length === 0) {
+          clearInterval(typingTimer);
+          typingTimer = null;
+          if (isStreamDone) finishStreamingUI();
+          return;
+        }
+        const charsToType = typeQueue.length > 30 ? 3 : 1;
+        const chunk = typeQueue.slice(0, charsToType);
+        typeQueue = typeQueue.slice(charsToType);
+        streamingText += chunk;
+        streamingEl.innerHTML = renderMarkdown(streamingText) + '<span class="nap-cursor">▍</span>';
+        scrollBottom(false);
+      }, 20); 
+    }
+
+    function finishStreamingUI() {
+      const finalText = finalFullText || streamingText;
+      streamingEl.classList.remove('nap-streaming');
+      streamingEl.innerHTML = renderMarkdown(finalText);
+      history.push({ role: 'assistant', content: finalText });
+      saveHistory(ctx.fileKey, ctx.conversationId, history);
+      
+      if (finalParentUuid) {
+        apiParentUuid = finalParentUuid;
+        localStorage.setItem(storageKey + ':parent', apiParentUuid);
+      }
+      finishStreaming();
+    }
+
     const payload = {
+      is_start: isStart,
       conversation_id: ctx.conversationId,
-      topic: ctx.topic,
-      question_text: ctx.questionText,
-      options: ctx.options,
-      correct_option_id: ctx.correctOptionId,
-      user_option_id: ctx.userOptionId,
-      history: history.slice(0, -1),
+      api_conversation_uuid: apiConvUuid,
+      api_parent_uuid: apiParentUuid,
       message: text,
     };
 
-    sendMessage(payload, {
-      onDelta: () => {}, // Нам больше не нужны дельты от сервера
-      onDone: (fullText) => {
-        const finalText = fullText || '';
-        streamingEl.classList.remove('nap-streaming');
-        streamingEl.innerHTML = '';
-        
-        history.push({ role: 'assistant', content: finalText });
-        saveHistory(ctx.fileKey, ctx.conversationId, history);
+    if (isStart) {
+      payload.topic = ctx.topic;
+      payload.question_text = ctx.questionText;
+      payload.options = ctx.options;
+      payload.correct_option_id = ctx.correctOptionId;
+      payload.user_option_id = ctx.userOptionId;
+    }
 
-        // ФЕЙКОВЫЙ СТРИМИНГ (печатаем текст по кусочкам)
-        let i = 0;
-        const speed = 15; // Задержка между кадрами (мс)
-        const chunkSize = 3; // Сколько символов добавлять за кадр
-        
-        const typeInterval = setInterval(() => {
-          i += chunkSize;
-          if (i >= finalText.length) {
-            clearInterval(typeInterval);
-            streamingEl.innerHTML = renderMarkdown(finalText);
-            finishStreaming();
-          } else {
-            streamingEl.innerHTML = renderMarkdown(finalText.slice(0, i)) + '<span class="nap-cursor">▍</span>';
-            scrollBottom();
-          }
-        }, speed);
+    sendMessage(payload, {
+        // Если реальный текст еще не начался, меняем текст рядом с котиком
+      onStatus: (statusText) => {
+        // Если реальный текст еще не начал печататься, обновляем текст рядом с котиком
+        if (!isTypingStarted) {
+          const statusEl = streamingEl.querySelector('.nap-status-text');
+          if (statusEl) statusEl.textContent = statusText;
+          scrollBottom(false); // Умный скролл
+        }
+      },
+      onDelta: (delta) => {
+        // Первый кусок реального текста — убираем котика, начинаем печатать
+        if (!isTypingStarted) {
+          isTypingStarted = true;
+          streamingEl.innerHTML = ''; 
+        }
+        typeQueue += delta; 
+        startTyping(); 
+      },
+      onMeta: (convUuid) => {
+        apiConvUuid = convUuid;
+        localStorage.setItem(storageKey + ':conv', apiConvUuid);
+      },
+      onDone: (fullText, parentUuid) => {
+        isStreamDone = true; 
+        finalFullText = fullText;
+        finalParentUuid = parentUuid;
+        if (typeQueue.length === 0 && !typingTimer) finishStreamingUI();
       },
       onError: (err) => {
+        if (typingTimer) clearInterval(typingTimer);
         streamingEl.classList.remove('nap-streaming');
         streamingEl.innerHTML = `<span class="nap-error">⚠️ Ошибка: ${escapeHtml((err && err.message) || 'неизвестная')}</span>`;
         if (history.length && history[history.length - 1].role === 'user') history.pop();
@@ -223,7 +289,6 @@ export function openChat(ctx) {
       signal: currentAbort.signal,
     });
   }
-
   function finishStreaming() {
     streamingEl = null;
     streamingText = '';
